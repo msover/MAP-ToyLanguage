@@ -41,3 +41,10 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### In Project Requirements ###
+.idea/
+*.iml
+out/
+.vscode/
+.DS_Store
