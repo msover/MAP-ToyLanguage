@@ -1,6 +1,6 @@
 package interpreter.model.adt;
 
-import interpreter.exceptions.ObjectException;
+import interpreter.exceptions.AdtException;
 import interpreter.model.adt.interfaces.IList;
 
 import java.util.ArrayList;
@@ -20,8 +20,9 @@ public class ToyList<E> implements IList<E> {
     }
 
     @Override
-    public E get(int atPosition) throws ObjectException {
-        if(atPosition < 0 || atPosition >= toyList.size()) throw new ObjectException("Index " + atPosition + " out of bounds for list of size " + this.toyList.size());
+    public E get(int atPosition) throws AdtException {
+        if (atPosition < 0 || atPosition >= toyList.size())
+            throw new AdtException("Index " + atPosition + " out of bounds for list of size " + this.toyList.size());
         return this.toyList.get(atPosition);
     }
 

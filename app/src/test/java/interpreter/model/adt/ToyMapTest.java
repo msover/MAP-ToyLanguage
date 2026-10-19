@@ -1,6 +1,6 @@
 package interpreter.model.adt;
 
-import interpreter.exceptions.ObjectException;
+import interpreter.exceptions.AdtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -22,13 +22,13 @@ class ToyMapTest {
     }
 
     @Test
-    void lookupReturnsValueAfterPut() throws ObjectException {
+    void lookupReturnsValueAfterPut() throws AdtException {
         map.put("v", 2);
         assertEquals(2, map.lookup("v"));
     }
 
     @Test
-    void putIncreasesSize() throws ObjectException {
+    void putIncreasesSize() throws AdtException {
         map.put("a", 1);
         map.put("b", 2);
         assertEquals(2, map.size());
@@ -36,25 +36,25 @@ class ToyMapTest {
     }
 
     @Test
-    void putOnExistingKeyThrows() throws ObjectException {
+    void putOnExistingKeyThrows() throws AdtException {
         map.put("v", 2);
-        assertThrows(ObjectException.class, () -> map.put("v", 3));
+        assertThrows(AdtException.class, () -> map.put("v", 3));
     }
 
     @Test
-    void putOnExistingKeyKeepsOldValue() throws ObjectException {
+    void putOnExistingKeyKeepsOldValue() throws AdtException {
         map.put("v", 2);
-        assertThrows(ObjectException.class, () -> map.put("v", 3));
+        assertThrows(AdtException.class, () -> map.put("v", 3));
         assertEquals(2, map.lookup("v"));
     }
 
     @Test
     void lookupOfMissingKeyThrows() {
-        assertThrows(ObjectException.class, () -> map.lookup("missing"));
+        assertThrows(AdtException.class, () -> map.lookup("missing"));
     }
 
     @Test
-    void updateChangesValue() throws ObjectException {
+    void updateChangesValue() throws AdtException {
         map.put("v", 2);
         map.update("v", 5);
         assertEquals(5, map.lookup("v"));
@@ -63,24 +63,24 @@ class ToyMapTest {
 
     @Test
     void updateOfMissingKeyThrows() {
-        assertThrows(ObjectException.class, () -> map.update("missing", 1));
+        assertThrows(AdtException.class, () -> map.update("missing", 1));
     }
 
     @Test
     void updateOfMissingKeyDoesNotAddIt() {
-        assertThrows(ObjectException.class, () -> map.update("missing", 1));
+        assertThrows(AdtException.class, () -> map.update("missing", 1));
         assertFalse(map.containsKey("missing"));
     }
 
     @Test
-    void containsKeyReflectsPutKeys() throws ObjectException {
+    void containsKeyReflectsPutKeys() throws AdtException {
         map.put("v", 2);
         assertTrue(map.containsKey("v"));
         assertFalse(map.containsKey("w"));
     }
 
     @Test
-    void toStringShowsEntriesInInsertionOrder() throws ObjectException {
+    void toStringShowsEntriesInInsertionOrder() throws AdtException {
         map.put("v", 2);
         map.put("a", 0);
         assertEquals("{v -> 2, a -> 0}", map.toString());

@@ -1,6 +1,6 @@
 package interpreter.model.adt;
 
-import interpreter.exceptions.ObjectException;
+import interpreter.exceptions.AdtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -22,7 +22,7 @@ class ToyStackTest {
     }
 
     @Test
-    void popReturnsElementsInLifoOrder() throws ObjectException {
+    void popReturnsElementsInLifoOrder() throws AdtException {
         stack.push(1);
         stack.push(2);
         stack.push(3);
@@ -32,7 +32,7 @@ class ToyStackTest {
     }
 
     @Test
-    void peekReturnsTopWithoutRemovingIt() throws ObjectException {
+    void peekReturnsTopWithoutRemovingIt() throws AdtException {
         stack.push(1);
         stack.push(2);
         assertEquals(2, stack.peek());
@@ -40,7 +40,7 @@ class ToyStackTest {
     }
 
     @Test
-    void sizeAndIsEmptyFollowPushAndPop() throws ObjectException {
+    void sizeAndIsEmptyFollowPushAndPop() throws AdtException {
         stack.push(1);
         stack.push(2);
         assertEquals(2, stack.size());
@@ -53,19 +53,19 @@ class ToyStackTest {
 
     @Test
     void popOnEmptyStackThrows() {
-        assertThrows(ObjectException.class, () -> stack.pop());
+        assertThrows(AdtException.class, () -> stack.pop());
     }
 
     @Test
     void peekOnEmptyStackThrows() {
-        assertThrows(ObjectException.class, () -> stack.peek());
+        assertThrows(AdtException.class, () -> stack.peek());
     }
 
     @Test
-    void popAfterStackIsEmptiedThrows() throws ObjectException {
+    void popAfterStackIsEmptiedThrows() throws AdtException {
         stack.push(1);
         stack.pop();
-        assertThrows(ObjectException.class, () -> stack.pop());
+        assertThrows(AdtException.class, () -> stack.pop());
     }
 
     @Test

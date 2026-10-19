@@ -1,6 +1,6 @@
 package interpreter.model.adt;
 
-import interpreter.exceptions.ObjectException;
+import interpreter.exceptions.AdtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +30,7 @@ class ToyListTest {
     }
 
     @Test
-    void getReturnsElementsInInsertionOrder() throws ObjectException {
+    void getReturnsElementsInInsertionOrder() throws AdtException {
         list.append(10);
         list.append(20);
         list.append(30);
@@ -42,19 +42,19 @@ class ToyListTest {
     @Test
     void getWithNegativeIndexThrows() {
         list.append(1);
-        assertThrows(ObjectException.class, () -> list.get(-1));
+        assertThrows(AdtException.class, () -> list.get(-1));
     }
 
     @Test
     void getWithIndexEqualToSizeThrows() {
         list.append(1);
         list.append(2);
-        assertThrows(ObjectException.class, () -> list.get(2));
+        assertThrows(AdtException.class, () -> list.get(2));
     }
 
     @Test
     void getOnEmptyListThrows() {
-        assertThrows(ObjectException.class, () -> list.get(0));
+        assertThrows(AdtException.class, () -> list.get(0));
     }
 
     @Test

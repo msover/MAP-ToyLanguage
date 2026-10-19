@@ -1,6 +1,6 @@
 package interpreter.model.adt;
 
-import interpreter.exceptions.ObjectException;
+import interpreter.exceptions.AdtException;
 import interpreter.model.adt.interfaces.IMap;
 
 import java.util.LinkedHashMap;
@@ -16,14 +16,14 @@ public class ToyMap<K, V> implements IMap<K, V> {
     }
 
     @Override
-    public void put(K key, V value) throws ObjectException {
-        if(this.containsKey(key)) throw new ObjectException("Cannot have duplicate keys in maps");
+    public void put(K key, V value) throws AdtException {
+        if (this.containsKey(key)) throw new AdtException("Cannot have duplicate keys in maps");
         this.toyMap.put(key, value);
     }
 
     @Override
-    public V lookup(K key) throws ObjectException {
-        if(! this.containsKey(key)) throw new ObjectException("Cannot lookup on non-existent key");
+    public V lookup(K key) throws AdtException {
+        if (!this.containsKey(key)) throw new AdtException("Cannot lookup on non-existent key");
         return this.toyMap.get(key);
     }
 
@@ -33,8 +33,8 @@ public class ToyMap<K, V> implements IMap<K, V> {
     }
 
     @Override
-    public void update(K key, V value) throws ObjectException {
-        if(! this.containsKey(key)) throw new ObjectException("Cannot update on non-existent key");
+    public void update(K key, V value) throws AdtException {
+        if (!this.containsKey(key)) throw new AdtException("Cannot update on non-existent key");
         this.toyMap.replace(key, value);
     }
 
@@ -51,7 +51,7 @@ public class ToyMap<K, V> implements IMap<K, V> {
     @Override
     public String toString() {
         return this.toyMap.entrySet().stream()
-                .map(entry -> entry.getKey() +  " -> " + entry.getValue())
+                .map(entry -> entry.getKey() + " -> " + entry.getValue())
                 .collect(Collectors.joining(", ", "{", "}"));
     }
 }

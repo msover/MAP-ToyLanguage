@@ -1,6 +1,6 @@
 package interpreter.model.adt;
 
-import interpreter.exceptions.ObjectException;
+import interpreter.exceptions.AdtException;
 import interpreter.model.adt.interfaces.IStack;
 
 import java.util.ArrayDeque;
@@ -11,7 +11,7 @@ public class ToyStack<E> implements IStack<E> {
 
     private final Deque<E> toyStack;
 
-    public ToyStack () {
+    public ToyStack() {
         this.toyStack = new ArrayDeque<>();
     }
 
@@ -21,14 +21,14 @@ public class ToyStack<E> implements IStack<E> {
     }
 
     @Override
-    public E pop() throws ObjectException {
-        if(this.isEmpty()) throw new ObjectException("Cannot pop from empty stack");
+    public E pop() throws AdtException {
+        if (this.isEmpty()) throw new AdtException("Cannot pop from empty stack");
         return this.toyStack.pop();
     }
 
     @Override
-    public E peek() throws ObjectException {
-        if(this.isEmpty()) throw new ObjectException("Cannot peek inside empty stack");
+    public E peek() throws AdtException {
+        if (this.isEmpty()) throw new AdtException("Cannot peek inside empty stack");
         return this.toyStack.peek();
     }
 

@@ -2,7 +2,8 @@ package interpreter.exceptions;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 class InterpreterExceptionTest {
     @Test
@@ -10,6 +11,6 @@ class InterpreterExceptionTest {
         InterpreterException e = new ExpressionException("division by zero");
         assertEquals("division by zero", e.getMessage());
         assertInstanceOf(InterpreterException.class, new StatementException("x"));
-        assertInstanceOf(InterpreterException.class, new ObjectException("x"));
+        assertInstanceOf(InterpreterException.class, new AdtException("x"));
     }
 }
