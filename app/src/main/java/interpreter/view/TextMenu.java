@@ -18,19 +18,17 @@ public class TextMenu {
 
     private final Scanner scanner = new Scanner(System.in);
     private final List<IStatement> programs = List.of(Examples.example1(), Examples.example2(), Examples.example3());
-    private IStatement selectedProgram = null;
     private boolean showSteps = true;
 
     public void start() {
         while (true) {
             printMenu();
             if (!this.scanner.hasNextLine()) {
-                return; // input closed (e.g. Ctrl+D): leave quietly
+                return;
             }
             switch (readNumber(this.scanner.nextLine())) {
-                case 1 -> selectProgram();
-                case 2 -> runSelectedProgram();
-                case 3 -> toggleStepDisplay();
+                case 1 -> selectAndRunProgram();
+                case 2 -> toggleStepDisplay();
                 case 0 -> {
                     System.out.println("Goodbye!");
                     return;
@@ -42,15 +40,21 @@ public class TextMenu {
 
     private void printMenu() {
         System.out.println();
-        System.out.println("Selected program: " + (this.selectedProgram == null ? "none" : this.selectedProgram));
-        System.out.println("1. Select a program");
-        System.out.println("2. Run selected program");
-        System.out.println("3. Turn step display " + (this.showSteps ? "off" : "on"));
+        System.out.println("1. Run a program");
+        System.out.println("2. Turn step display " + (this.showSteps ? "off" : "on"));
         System.out.println("0. Exit");
         System.out.print("> ");
     }
 
-    private void selectProgram() {
+    private static int readNumber(String line) {
+        try {
+            return Integer.parseInt(line.trim());
+        } catch (NumberFormatException e) {
+            return INVALID;
+        }
+    }
+
+    private void selectAndRunProgram() {
         for (int i = 0; i < this.programs.size(); i++) {
             System.out.println((i + 1) + ". " + this.programs.get(i));
         }
@@ -63,22 +67,20 @@ public class TextMenu {
             System.out.println("No such program.");
             return;
         }
-        this.selectedProgram = this.programs.get(choice - 1);
-        System.out.println("Selected: " + this.selectedProgram);
+        runProgram(this.programs.get(choice - 1));
     }
 
-    private void runSelectedProgram() {
-        if (this.selectedProgram == null) {
-            System.out.println("Select a program first.");
-            return;
-        }
+    private void toggleStepDisplay() {
+        this.showSteps = !this.showSteps;
+        System.out.println("Step display: " + (this.showSteps ? "on" : "off"));
+    }
 
-        // A fresh state on every run: a finished run leaves an empty stack and a filled symbol table.
-        ProgramState state = new ProgramState(new ToyStack<>(), new ToyMap<>(), new ToyList<>(), this.selectedProgram);
+    private void runProgram(IStatement program) {
+        ProgramState state = new ProgramState(new ToyStack<>(), new ToyMap<>(), new ToyList<>(), program);
         Repository repository = new Repository(state);
         Controller controller;
         if (this.showSteps) {
-            int[] step = {0}; // an array, because a lambda cannot change a plain local int
+            int[] step = {0};
             controller = new Controller(repository, s -> {
                 System.out.println("--- Step " + step[0]++ + " ---");
                 System.out.println(s);
@@ -92,19 +94,6 @@ public class TextMenu {
             System.out.println("Output: " + state.getSystemOut());
         } catch (InterpreterException e) {
             System.out.println("Error: " + e.getMessage());
-        }
-    }
-
-    private void toggleStepDisplay() {
-        this.showSteps = !this.showSteps;
-        System.out.println("Step display: " + (this.showSteps ? "on" : "off"));
-    }
-
-    private static int readNumber(String line) {
-        try {
-            return Integer.parseInt(line.trim());
-        } catch (NumberFormatException e) {
-            return INVALID; // the caller reports it as an unknown option
         }
     }
 }
