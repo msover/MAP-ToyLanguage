@@ -1,0 +1,19 @@
+package interpreter.model.expression.enums;
+
+public enum ArithmeticOperator {
+    ADD("+"),
+    SUB("-"),
+    MUL("*"),
+    DIV("/");
+
+    private final String symbol;
+
+    ArithmeticOperator(String symbol) {
+        this.symbol = symbol;
+    }
+
+    @Override
+    public String toString() {
+        return this.symbol;
+    }
+}

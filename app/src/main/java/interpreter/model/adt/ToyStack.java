@@ -1,13 +1,13 @@
 package interpreter.model.adt;
 
-import interpreter.exceptions.ToyObjectException;
-import interpreter.model.adt.interfaces.IToyStack;
+import interpreter.exceptions.ObjectException;
+import interpreter.model.adt.interfaces.IStack;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.stream.Collectors;
 
-public class ToyStack<E> implements IToyStack<E> {
+public class ToyStack<E> implements IStack<E> {
 
     private final Deque<E> toyStack;
 
@@ -21,14 +21,14 @@ public class ToyStack<E> implements IToyStack<E> {
     }
 
     @Override
-    public E pop() throws ToyObjectException {
-        if(this.isEmpty()) throw new ToyObjectException("Cannot pop from empty stack");
+    public E pop() throws ObjectException {
+        if(this.isEmpty()) throw new ObjectException("Cannot pop from empty stack");
         return this.toyStack.pop();
     }
 
     @Override
-    public E peek() throws ToyObjectException {
-        if(this.isEmpty()) throw new ToyObjectException("Cannot peek inside empty stack");
+    public E peek() throws ObjectException {
+        if(this.isEmpty()) throw new ObjectException("Cannot peek inside empty stack");
         return this.toyStack.peek();
     }
 

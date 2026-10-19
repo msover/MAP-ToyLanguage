@@ -1,13 +1,13 @@
 package interpreter.model.adt;
 
-import interpreter.exceptions.ToyObjectException;
-import interpreter.model.adt.interfaces.IToyMap;
+import interpreter.exceptions.ObjectException;
+import interpreter.model.adt.interfaces.IMap;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class ToyMap<K, V> implements IToyMap<K, V> {
+public class ToyMap<K, V> implements IMap<K, V> {
 
     private final Map<K, V> toyMap;
 
@@ -16,14 +16,14 @@ public class ToyMap<K, V> implements IToyMap<K, V> {
     }
 
     @Override
-    public void put(K key, V value) throws ToyObjectException {
-        if(this.containsKey(key)) throw new ToyObjectException("Cannot have duplicate keys in maps");
+    public void put(K key, V value) throws ObjectException {
+        if(this.containsKey(key)) throw new ObjectException("Cannot have duplicate keys in maps");
         this.toyMap.put(key, value);
     }
 
     @Override
-    public V lookup(K key) throws ToyObjectException {
-        if(! this.containsKey(key)) throw new ToyObjectException("Cannot lookup on non-existent key");
+    public V lookup(K key) throws ObjectException {
+        if(! this.containsKey(key)) throw new ObjectException("Cannot lookup on non-existent key");
         return this.toyMap.get(key);
     }
 
@@ -33,8 +33,8 @@ public class ToyMap<K, V> implements IToyMap<K, V> {
     }
 
     @Override
-    public void update(K key, V value) throws ToyObjectException {
-        if(! this.containsKey(key)) throw new ToyObjectException("Cannot update on non-existent key");
+    public void update(K key, V value) throws ObjectException {
+        if(! this.containsKey(key)) throw new ObjectException("Cannot update on non-existent key");
         this.toyMap.replace(key, value);
     }
 

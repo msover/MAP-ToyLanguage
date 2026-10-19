@@ -1,9 +1,9 @@
 package interpreter.model.value;
 
-import interpreter.model.type.IToyType;
+import interpreter.model.type.IType;
 import interpreter.model.type.ToyIntegerType;
 
-public class ToyIntegerValue implements IToyValue {
+public class ToyIntegerValue implements IValue {
 
     private final int toyInteger;
 
@@ -33,7 +33,7 @@ public class ToyIntegerValue implements IToyValue {
     }
 
     @Override
-    public IToyType getType() {
+    public IType getType() {
         return new ToyIntegerType();
     }
 }

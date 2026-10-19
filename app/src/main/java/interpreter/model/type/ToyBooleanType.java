@@ -1,9 +1,9 @@
 package interpreter.model.type;
 
 import interpreter.model.value.ToyBooleanValue;
-import interpreter.model.value.IToyValue;
+import interpreter.model.value.IValue;
 
-public class ToyBooleanType implements IToyType {
+public class ToyBooleanType implements IType {
 
     public ToyBooleanType() {}
 
@@ -23,7 +23,7 @@ public class ToyBooleanType implements IToyType {
     }
 
     @Override
-    public IToyValue defaultValue() {
+    public IValue defaultValue() {
         return new ToyBooleanValue(false);
     }
 }

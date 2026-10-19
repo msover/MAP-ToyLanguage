@@ -1,9 +1,9 @@
 package interpreter.model.value;
 
 import interpreter.model.type.ToyBooleanType;
-import interpreter.model.type.IToyType;
+import interpreter.model.type.IType;
 
-public class ToyBooleanValue implements IToyValue {
+public class ToyBooleanValue implements IValue {
 
     private final boolean toyBoolean;
 
@@ -32,7 +32,7 @@ public class ToyBooleanValue implements IToyValue {
     }
 
     @Override
-    public IToyType getType() {
+    public IType getType() {
         return new ToyBooleanType();
     }
 }
