@@ -9,6 +9,7 @@ import interpreter.repository.Repository;
 import java.util.List;
 import java.util.Scanner;
 
+@Deprecated
 public class TextMenu {
 
     private static final int INVALID = -1;
@@ -64,7 +65,7 @@ public class TextMenu {
             System.out.println("No such program.");
             return;
         }
-        runProgram(this.programs.get(choice - 1));
+        runProgram(this.programs.get(choice - 1), "log" + choice + ".txt");
     }
 
     private void toggleStepDisplay() {
@@ -72,18 +73,13 @@ public class TextMenu {
         System.out.println("Step display: " + (this.showSteps ? "on" : "off"));
     }
 
-    private void runProgram(IStatement program) {
+    private void runProgram(IStatement program, String logFilePath) {
         ProgramState state = ProgramState.of(program);
         Repository repository = new Repository(state);
-        Controller controller;
+        Controller controller = new Controller(repository);
+        controller.addListener(new LogFileListener(repository, logFilePath));
         if (this.showSteps) {
-            int[] step = {0};
-            controller = new Controller(repository, s -> {
-                System.out.println("--- Step " + step[0]++ + " ---");
-                System.out.println(s);
-            });
-        } else {
-            controller = new Controller(repository);
+            controller.addListener(new ConsoleListener());
         }
 
         try {

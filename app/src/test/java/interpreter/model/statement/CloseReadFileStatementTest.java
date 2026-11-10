@@ -53,7 +53,7 @@ class CloseReadFileStatementTest {
         BufferedReader reader = state.getFileTable().lookup(fileName);
         new CloseReadFileStatement(file).execute(state);
         // a closed BufferedReader throws when used
-        assertThrows(IOException.class, reader::readLine);
+        assertThrows(IOException.class, () -> reader.readLine());
     }
 
     @Test

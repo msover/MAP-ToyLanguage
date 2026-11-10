@@ -17,4 +17,9 @@ public class Repository implements IRepository {
     public ProgramState getCurrentProgram() {
         return this.programStates.getFirst();
     }
+
+    @Override
+    public String logProgramStateExecution() {
+        return this.getCurrentProgram().toLogString();
+    }
 }

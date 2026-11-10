@@ -64,4 +64,23 @@ public class ProgramState {
                 "SystemOut: " + this.systemOut.toString() + "\n" +
                 "FileTable: " + this.fileTable.toString();
     }
+
+    public String toLogString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("ExeStack:\n");
+        this.executionStack.toList().forEach(statement -> sb.append(statement).append('\n'));
+
+        sb.append("SymTable:\n");
+        this.symbolTable.toMap().forEach((name, value) ->
+                sb.append(name).append(" --> ").append(value).append('\n'));
+
+        sb.append("Out:\n");
+        this.systemOut.toList().forEach(value -> sb.append(value).append('\n'));
+
+        sb.append("FileTable:\n");
+        this.fileTable.toMap().keySet().forEach(fileName -> sb.append(fileName.getValue()).append('\n'));
+
+        return sb.toString();
+    }
 }

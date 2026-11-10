@@ -7,29 +7,34 @@ import interpreter.model.ProgramState;
 import interpreter.model.statement.IStatement;
 import interpreter.repository.IRepository;
 
-import java.util.function.Consumer;
+import java.util.ArrayList;
 
 public class Controller {
 
     private final IRepository repository;
-    private final Consumer<ProgramState> listener;
+    private final ArrayList<ProgramStateListener> listeners;
 
     public Controller(IRepository repository) {
-        this(repository, state -> {
-        });
+        this.repository = repository;
+        this.listeners = new ArrayList<>();
     }
 
-    public Controller(IRepository repository, Consumer<ProgramState> listener) {
-        this.repository = repository;
-        this.listener = listener;
+    public void addListener(ProgramStateListener listener) {
+        this.listeners.add(listener);
     }
 
     public void runUninterrupted() throws InterpreterException {
         ProgramState programState = this.repository.getCurrentProgram();
-        this.listener.accept(programState);
+        this.notifyListeners(programState);
         while (!programState.getExecutionStack().isEmpty()) {
             programState = this.oneStep(programState);
-            this.listener.accept(programState);
+            this.notifyListeners(programState);
+        }
+    }
+
+    private void notifyListeners(ProgramState programState) throws InterpreterException {
+        for (ProgramStateListener listener : this.listeners) {
+            listener.onStateChanged(programState);
         }
     }
 
