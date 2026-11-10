@@ -12,8 +12,12 @@ import interpreter.model.statement.IStatement;
 import interpreter.model.statement.PrintStatement;
 import interpreter.model.value.IValue;
 import interpreter.model.value.ToyIntegerValue;
+import interpreter.model.value.ToyStringValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.io.BufferedReader;
+import java.io.StringReader;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,6 +26,7 @@ class ProgramStateTest {
     private IStack<IStatement> stack;
     private IMap<String, IValue> symbolTable;
     private IList<IValue> out;
+    private IMap<ToyStringValue, BufferedReader> fileTable;
     private IStatement program;
     private ProgramState state;
 
@@ -30,8 +35,9 @@ class ProgramStateTest {
         stack = new ToyStack<>();
         symbolTable = new ToyMap<>();
         out = new ToyList<>();
+        fileTable = new ToyMap<>();
         program = new PrintStatement(new ValueExpression(new ToyIntegerValue(1)));
-        state = new ProgramState(stack, symbolTable, out, program);
+        state = new ProgramState(stack, symbolTable, out, fileTable, program);
     }
 
     @Test
@@ -41,9 +47,10 @@ class ProgramStateTest {
     }
 
     @Test
-    void newStateHasEmptySymbolTableAndOutput() {
+    void newStateHasEmptySymbolTableOutputAndFileTable() {
         assertTrue(state.getSymbolTable().isEmpty());
         assertTrue(state.getSystemOut().isEmpty());
+        assertTrue(state.getFileTable().isEmpty());
     }
 
     @Test
@@ -51,6 +58,7 @@ class ProgramStateTest {
         assertSame(stack, state.getExecutionStack());
         assertSame(symbolTable, state.getSymbolTable());
         assertSame(out, state.getSystemOut());
+        assertSame(fileTable, state.getFileTable());
     }
 
     @Test
@@ -60,10 +68,63 @@ class ProgramStateTest {
     }
 
     @Test
-    void toStringShowsAllThreeStructures() {
+    void toStringShowsAllFourStructures() {
         String text = state.toString();
         assertTrue(text.contains("ExecutionStack: " + stack));
         assertTrue(text.contains("SymbolTable: {}"));
         assertTrue(text.contains("SystemOut: {}"));
+        assertTrue(text.contains("FileTable: {}"));
+    }
+
+    // --- the static factory ---
+
+    @Test
+    void factoryPutsOnlyTheProgramOnTheStack() throws InterpreterException {
+        ProgramState s = ProgramState.of(program);
+        assertEquals(1, s.getExecutionStack().size());
+        assertSame(program, s.getExecutionStack().peek());
+    }
+
+    @Test
+    void factoryCreatesEmptyStructures() {
+        ProgramState s = ProgramState.of(program);
+        assertTrue(s.getSymbolTable().isEmpty());
+        assertTrue(s.getSystemOut().isEmpty());
+        assertTrue(s.getFileTable().isEmpty());
+    }
+
+    @Test
+    void factoryKeepsTheOriginalProgram() {
+        assertSame(program, ProgramState.of(program).getOriginalProgram());
+    }
+
+    @Test
+    void factoryStatesDoNotShareStructures() throws InterpreterException {
+        ProgramState a = ProgramState.of(program);
+        ProgramState b = ProgramState.of(program);
+        a.getSymbolTable().put("x", new ToyIntegerValue(1));
+        a.getSystemOut().append(new ToyIntegerValue(1));
+        a.getFileTable().put(new ToyStringValue("f"), new BufferedReader(new StringReader("")));
+        assertTrue(b.getSymbolTable().isEmpty());
+        assertTrue(b.getSystemOut().isEmpty());
+        assertTrue(b.getFileTable().isEmpty());
+    }
+
+    // --- the FileTable ---
+
+    @Test
+    void fileTableFindsAReaderByAnEqualFileName() throws InterpreterException {
+        // the statements evaluate the file name again each time, so the lookup key is a new object
+        BufferedReader reader = new BufferedReader(new StringReader("15\n50\n"));
+        state.getFileTable().put(new ToyStringValue("test.in"), reader);
+        assertTrue(state.getFileTable().containsKey(new ToyStringValue("test.in")));
+        assertSame(reader, state.getFileTable().lookup(new ToyStringValue("test.in")));
+    }
+
+    @Test
+    void fileTableEntryCanBeRemoved() throws InterpreterException {
+        state.getFileTable().put(new ToyStringValue("test.in"), new BufferedReader(new StringReader("")));
+        state.getFileTable().remove(new ToyStringValue("test.in"));
+        assertTrue(state.getFileTable().isEmpty());
     }
 }

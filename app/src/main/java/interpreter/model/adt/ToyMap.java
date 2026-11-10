@@ -39,6 +39,17 @@ public class ToyMap<K, V> implements IMap<K, V> {
     }
 
     @Override
+    public void remove(K key) throws AdtException {
+        if (!this.containsKey(key)) throw new AdtException("Cannot remove on non-existent key");
+        this.toyMap.remove(key);
+    }
+
+    @Override
+    public Map<K, V> toMap() {
+        return Map.copyOf(this.toyMap);
+    }
+
+    @Override
     public int size() {
         return this.toyMap.size();
     }

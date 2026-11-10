@@ -2,9 +2,6 @@ package interpreter.model.statement;
 
 import interpreter.exceptions.InterpreterException;
 import interpreter.model.ProgramState;
-import interpreter.model.adt.ToyList;
-import interpreter.model.adt.ToyMap;
-import interpreter.model.adt.ToyStack;
 import interpreter.model.adt.interfaces.IList;
 import interpreter.model.adt.interfaces.IMap;
 import interpreter.model.adt.interfaces.IStack;
@@ -30,10 +27,10 @@ class CompoundStatementTest {
     // Each test starts from an empty stack, an empty symbol table and an empty output.
     @BeforeEach
     void setUp() throws InterpreterException {
-        stack = new ToyStack<>();
-        symbolTable = new ToyMap<>();
-        out = new ToyList<>();
-        state = new ProgramState(stack, symbolTable, out, new NothingBurgerStatement());
+        state = ProgramState.of(new NothingBurgerStatement());
+        stack = state.getExecutionStack();
+        symbolTable = state.getSymbolTable();
+        out = state.getSystemOut();
         stack.pop(); // remove the placeholder program pushed by the constructor
     }
 

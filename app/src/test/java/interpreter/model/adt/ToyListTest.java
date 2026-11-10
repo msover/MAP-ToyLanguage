@@ -68,4 +68,31 @@ class ToyListTest {
     void toStringOfEmptyListIsEmptyBraces() {
         assertEquals("{}", list.toString());
     }
+
+    @Test
+    void toListKeepsInsertionOrder() {
+        list.append(10);
+        list.append(20);
+        list.append(30);
+        assertEquals(java.util.List.of(10, 20, 30), list.toList());
+    }
+
+    @Test
+    void toListOfEmptyListIsEmpty() {
+        assertTrue(list.toList().isEmpty());
+    }
+
+    @Test
+    void toListIsReadOnly() {
+        list.append(1);
+        assertThrows(UnsupportedOperationException.class, () -> list.toList().add(2));
+    }
+
+    @Test
+    void toListIsACopy() {
+        list.append(1);
+        var copy = list.toList();
+        list.append(2);
+        assertEquals(java.util.List.of(1), copy);
+    }
 }

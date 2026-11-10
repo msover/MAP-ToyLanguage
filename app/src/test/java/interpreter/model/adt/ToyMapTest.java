@@ -90,4 +90,55 @@ class ToyMapTest {
     void toStringOfEmptyMapIsEmptyBraces() {
         assertEquals("{}", map.toString());
     }
+
+    @Test
+    void removeDeletesTheKey() throws AdtException {
+        map.put("a", 1);
+        map.put("b", 2);
+        map.remove("a");
+        assertFalse(map.containsKey("a"));
+        assertTrue(map.containsKey("b"));
+        assertEquals(1, map.size());
+    }
+
+    @Test
+    void removeOfMissingKeyThrows() {
+        assertThrows(AdtException.class, () -> map.remove("missing"));
+    }
+
+    @Test
+    void removedKeyCanBePutAgain() throws AdtException {
+        map.put("a", 1);
+        map.remove("a");
+        map.put("a", 2);
+        assertEquals(2, map.lookup("a"));
+    }
+
+    @Test
+    void toMapContainsAllEntries() throws AdtException {
+        map.put("a", 1);
+        map.put("b", 2);
+        assertEquals(java.util.Map.of("a", 1, "b", 2), map.toMap());
+    }
+
+    @Test
+    void toMapOfEmptyMapIsEmpty() {
+        assertTrue(map.toMap().isEmpty());
+    }
+
+    @Test
+    void toMapIsReadOnly() throws AdtException {
+        map.put("a", 1);
+        assertThrows(UnsupportedOperationException.class, () -> map.toMap().put("b", 2));
+        assertThrows(UnsupportedOperationException.class, () -> map.toMap().remove("a"));
+    }
+
+    @Test
+    void toMapIsACopy() throws AdtException {
+        map.put("a", 1);
+        var copy = map.toMap();
+        map.put("b", 2);
+        map.update("a", 5);
+        assertEquals(java.util.Map.of("a", 1), copy);
+    }
 }

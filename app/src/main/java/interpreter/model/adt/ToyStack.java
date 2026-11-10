@@ -5,6 +5,7 @@ import interpreter.model.adt.interfaces.IStack;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class ToyStack<E> implements IStack<E> {
@@ -30,6 +31,11 @@ public class ToyStack<E> implements IStack<E> {
     public E peek() throws AdtException {
         if (this.isEmpty()) throw new AdtException("Cannot peek inside empty stack");
         return this.toyStack.peek();
+    }
+
+    @Override
+    public List<E> toList() {
+        return List.copyOf(this.toyStack);
     }
 
     @Override

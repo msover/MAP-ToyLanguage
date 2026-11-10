@@ -3,9 +3,6 @@ package interpreter.controller;
 import interpreter.exceptions.InterpreterException;
 import interpreter.exceptions.StatementException;
 import interpreter.model.ProgramState;
-import interpreter.model.adt.ToyList;
-import interpreter.model.adt.ToyMap;
-import interpreter.model.adt.ToyStack;
 import interpreter.model.expression.ValueExpression;
 import interpreter.model.statement.AssignmentStatement;
 import interpreter.model.statement.CompoundStatement;
@@ -60,7 +57,7 @@ class ControllerTest {
     }
 
     private static ProgramState newState(IStatement program) {
-        return new ProgramState(new ToyStack<>(), new ToyMap<>(), new ToyList<>(), program);
+        return ProgramState.of(program);
     }
 
     @Test

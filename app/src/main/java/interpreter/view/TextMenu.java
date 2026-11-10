@@ -3,9 +3,6 @@ package interpreter.view;
 import interpreter.controller.Controller;
 import interpreter.exceptions.InterpreterException;
 import interpreter.model.ProgramState;
-import interpreter.model.adt.ToyList;
-import interpreter.model.adt.ToyMap;
-import interpreter.model.adt.ToyStack;
 import interpreter.model.statement.IStatement;
 import interpreter.repository.Repository;
 
@@ -76,7 +73,7 @@ public class TextMenu {
     }
 
     private void runProgram(IStatement program) {
-        ProgramState state = new ProgramState(new ToyStack<>(), new ToyMap<>(), new ToyList<>(), program);
+        ProgramState state = ProgramState.of(program);
         Repository repository = new Repository(state);
         Controller controller;
         if (this.showSteps) {

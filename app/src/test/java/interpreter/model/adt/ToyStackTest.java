@@ -80,4 +80,42 @@ class ToyStackTest {
     void toStringOfEmptyStackIsEmptyBraces() {
         assertEquals("{}", stack.toString());
     }
+
+    @Test
+    void toListHasTopOfStackFirst() {
+        stack.push(1);
+        stack.push(2);
+        stack.push(3);
+        assertEquals(java.util.List.of(3, 2, 1), stack.toList());
+    }
+
+    @Test
+    void toListOfEmptyStackIsEmpty() {
+        assertTrue(stack.toList().isEmpty());
+    }
+
+    @Test
+    void toListDoesNotChangeTheStack() throws AdtException {
+        stack.push(1);
+        stack.push(2);
+        stack.toList();
+        assertEquals(2, stack.size());
+        assertEquals(2, stack.peek());
+    }
+
+    @Test
+    void toListIsReadOnly() {
+        stack.push(1);
+        assertThrows(UnsupportedOperationException.class, () -> stack.toList().add(2));
+    }
+
+    @Test
+    void toListIsACopy() throws AdtException {
+        stack.push(1);
+        var copy = stack.toList();
+        stack.push(2);
+        stack.pop();
+        stack.pop();
+        assertEquals(java.util.List.of(1), copy);
+    }
 }

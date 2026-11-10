@@ -3,9 +3,6 @@ package interpreter.model.statement;
 import interpreter.exceptions.InterpreterException;
 import interpreter.exceptions.StatementException;
 import interpreter.model.ProgramState;
-import interpreter.model.adt.ToyList;
-import interpreter.model.adt.ToyMap;
-import interpreter.model.adt.ToyStack;
 import interpreter.model.adt.interfaces.IList;
 import interpreter.model.adt.interfaces.IMap;
 import interpreter.model.adt.interfaces.IStack;
@@ -14,9 +11,11 @@ import interpreter.model.expression.ValueExpression;
 import interpreter.model.expression.VariableExpression;
 import interpreter.model.type.ToyBooleanType;
 import interpreter.model.type.ToyIntegerType;
+import interpreter.model.type.ToyStringType;
 import interpreter.model.value.IValue;
 import interpreter.model.value.ToyBooleanValue;
 import interpreter.model.value.ToyIntegerValue;
+import interpreter.model.value.ToyStringValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,10 +31,10 @@ class ObjectDeclarationStatementTest {
     // Each test starts from an empty stack, an empty symbol table and an empty output.
     @BeforeEach
     void setUp() throws InterpreterException {
-        stack = new ToyStack<>();
-        symbolTable = new ToyMap<>();
-        out = new ToyList<>();
-        state = new ProgramState(stack, symbolTable, out, new NothingBurgerStatement());
+        state = ProgramState.of(new NothingBurgerStatement());
+        stack = state.getExecutionStack();
+        symbolTable = state.getSymbolTable();
+        out = state.getSystemOut();
         stack.pop(); // remove the placeholder program pushed by the constructor
     }
 
@@ -61,6 +60,12 @@ class ObjectDeclarationStatementTest {
     void booleanVariableStartsFalse() throws InterpreterException {
         new ObjectDeclarationStatement("a", new ToyBooleanType()).execute(state);
         assertEquals(new ToyBooleanValue(false), symbolTable.lookup("a"));
+    }
+
+    @Test
+    void stringVariableStartsEmpty() throws InterpreterException {
+        new ObjectDeclarationStatement("s", new ToyStringType()).execute(state);
+        assertEquals(new ToyStringValue(""), symbolTable.lookup("s"));
     }
 
     @Test
