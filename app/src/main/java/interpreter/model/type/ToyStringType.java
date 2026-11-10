@@ -1,14 +1,20 @@
 package interpreter.model.type;
 
 import interpreter.model.value.IValue;
+import interpreter.model.value.ToyStringValue;
 
-public class ToyString implements IType {
+public class ToyStringType implements IType {
 
-    public ToyString() {
+    public ToyStringType() {
     }
 
     public int hashCode() {
         return this.toString().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof ToyStringType;
     }
 
     @Override
@@ -18,6 +24,6 @@ public class ToyString implements IType {
 
     @Override
     public IValue defaultValue() {
-        return null;
+        return new ToyStringValue("");
     }
 }
