@@ -1,11 +1,11 @@
-package interpreter.controller;
+package interpreter.view;
 
 import interpreter.exceptions.InterpreterException;
 import interpreter.exceptions.RepositoryException;
 import interpreter.model.ProgramState;
 import interpreter.model.statement.NothingBurgerStatement;
 import interpreter.repository.Repository;
-import interpreter.view.LogFileListener;
+import interpreter.view.Listeners.LogFileListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class LogFileListenerTest {
 
     @TempDir
-    Path dir; // a new empty folder for every test, holds the log file
+    Path dir;
 
     private Path logFile;
     private ProgramState state;
@@ -64,7 +64,6 @@ class LogFileListenerTest {
 
     @Test
     void unwritableLogFileThrowsRepositoryException() throws Exception {
-        // the log path is a folder, so it cannot be opened as a file
         Path folder = Files.createDirectory(dir.resolve("folder"));
         LogFileListener broken = new LogFileListener(repository, folder.toString());
         assertThrows(RepositoryException.class, () -> broken.onStateChanged(state));
@@ -72,7 +71,6 @@ class LogFileListenerTest {
 
     @Test
     void logErrorIsAnInterpreterException() {
-        // so the menu catches it like any other interpreter error
         assertInstanceOf(InterpreterException.class, new RepositoryException("x"));
     }
 }

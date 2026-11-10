@@ -48,3 +48,6 @@ bin/
 out/
 .vscode/
 .DS_Store
+
+### Interpreter log files ###
+log*.txt

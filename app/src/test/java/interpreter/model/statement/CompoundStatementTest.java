@@ -24,14 +24,13 @@ class CompoundStatementTest {
     private IList<IValue> out;
     private ProgramState state;
 
-    // Each test starts from an empty stack, an empty symbol table and an empty output.
     @BeforeEach
     void setUp() throws InterpreterException {
         state = ProgramState.of(new NothingBurgerStatement());
         stack = state.getExecutionStack();
         symbolTable = state.getSymbolTable();
         out = state.getSystemOut();
-        stack.pop(); // remove the placeholder program pushed by the constructor
+        stack.pop();
     }
 
     private static IExpression num(int n) {
@@ -76,7 +75,6 @@ class CompoundStatementTest {
 
     @Test
     void toStringBracketsNestedSecondCompound() {
-        // int v; (v = 2; int a), the same shape as the trace in section 3.3
         IStatement s = new CompoundStatement(new ObjectDeclarationStatement("v", new ToyIntegerType()),
                 new CompoundStatement(new AssignmentStatement("v", num(2)), new ObjectDeclarationStatement("a", new ToyIntegerType())));
         assertEquals("int v; (v = 2; int a)", s.toString());

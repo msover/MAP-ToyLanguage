@@ -12,7 +12,7 @@ import interpreter.model.statement.PrintStatement;
 import interpreter.model.value.ToyIntegerValue;
 import interpreter.repository.Repository;
 import interpreter.view.Examples;
-import interpreter.view.LogFileListener;
+import interpreter.view.Listeners.LogFileListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -28,10 +28,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class ControllerTest {
 
     @TempDir
-    Path dir; // a new empty folder for every test, holds the log file
+    Path dir;
 
-    // One entry per reported step: {execution stack, symbol table, output}.
-    // Text snapshots are stored because the ProgramState object itself keeps changing.
     private List<String[]> trace;
 
     @BeforeEach
@@ -56,7 +54,6 @@ class ControllerTest {
         }
     }
 
-    // Runs the program with the log file and the trace listener, like the menu does.
     private ProgramState runWithTrace(IStatement program) throws InterpreterException {
         ProgramState state = ProgramState.of(program);
         Repository repository = newRepository(state);
@@ -82,7 +79,6 @@ class ControllerTest {
         assertEquals("{v -> 2}", state.getSymbolTable().toString());
     }
 
-    // Runs the program with the log file only.
     private ProgramState run(IStatement program) throws InterpreterException {
         ProgramState state = ProgramState.of(program);
         Repository repository = newRepository(state);
@@ -106,7 +102,56 @@ class ControllerTest {
         assertEquals(new ToyIntegerValue(2), state.getSymbolTable().lookup("v"));
     }
 
-    // --- execution ---
+
+    @Test
+    void fileExampleReadsBothNumbersAndClosesTheFile() throws Exception {
+        Path in = dir.resolve("test.in");
+        Files.writeString(in, "15\n50\n");
+        ProgramState state = run(Examples.fileExample(in.toString()));
+        assertEquals(new ToyIntegerValue(15), state.getSystemOut().get(0));
+        assertEquals(new ToyIntegerValue(50), state.getSystemOut().get(1));
+        assertEquals(2, state.getSystemOut().size());
+        assertTrue(state.getFileTable().toMap().isEmpty());
+    }
+
+    @Test
+    void fileExampleOnAnEmptyFilePrintsZeroTwice() throws Exception {
+        Path in = dir.resolve("empty.in");
+        Files.writeString(in, "");
+        ProgramState state = run(Examples.fileExample(in.toString()));
+        assertEquals(new ToyIntegerValue(0), state.getSystemOut().get(0));
+        assertEquals(new ToyIntegerValue(0), state.getSystemOut().get(1));
+        assertTrue(state.getFileTable().toMap().isEmpty());
+    }
+
+    @Test
+    void fileExampleOnAMissingFileThrows() {
+        String missing = dir.resolve("missing.in").toString();
+        assertThrows(StatementException.class, () -> run(Examples.fileExample(missing)));
+    }
+
+    @Test
+    void fileExampleOnANonNumberFileThrows() throws Exception {
+        Path in = dir.resolve("bad.in");
+        Files.writeString(in, "abc\n");
+        assertThrows(StatementException.class, () -> run(Examples.fileExample(in.toString())));
+    }
+
+    @Test
+    void fileExampleLogShowsTheOpenFile() throws Exception {
+        Path in = dir.resolve("test.in");
+        Files.writeString(in, "15\n50\n");
+        run(Examples.fileExample(in.toString()));
+        String log = Files.readString(logFile());
+        assertTrue(log.contains("FileTable:\n" + in + "\n"));
+    }
+
+    @Test
+    void example5PrintsFive() throws InterpreterException {
+        ProgramState state = run(Examples.example5());
+        assertEquals(1, state.getSystemOut().size());
+        assertEquals(new ToyIntegerValue(5), state.getSystemOut().get(0));
+    }
 
     @Test
     void completeExecutionEmptiesTheStack() throws InterpreterException {
@@ -138,18 +183,15 @@ class ControllerTest {
 
     @Test
     void errorStopsExecutionAndReachesTheCaller() {
-        // print(1); x = 1  (x is never declared)
         IStatement program = new CompoundStatement(printNumber(1),
                 new AssignmentStatement("x", new ValueExpression(new ToyIntegerValue(1))));
         assertThrows(StatementException.class, () -> runWithTrace(program));
-        // initial state, S1, print(1) -- nothing after the failing step
         assertEquals(3, trace.size());
         assertEquals("{1}", trace.get(2)[2]);
     }
 
     @Test
     void listenerIsCalledOncePerStepPlusInitialState() throws InterpreterException {
-        // print(1); print(2): initial state, S1, S4, S4
         runWithTrace(new CompoundStatement(printNumber(1), printNumber(2)));
         assertEquals(4, trace.size());
     }
@@ -159,7 +201,7 @@ class ControllerTest {
         ProgramState state = ProgramState.of(Examples.example1());
         new Controller(newRepository(state)).runUninterrupted();
         assertEquals(new ToyIntegerValue(2), state.getSystemOut().get(0));
-        assertFalse(Files.exists(logFile())); // no log listener, no log file
+        assertFalse(Files.exists(logFile()));
     }
 
     @Test
@@ -170,11 +212,9 @@ class ControllerTest {
         controller.addListener(new NamedListener("first", calls));
         controller.addListener(new NamedListener("second", calls));
         controller.runUninterrupted();
-        // initial state + one step, each time first then second
         assertEquals(List.of("first", "second", "first", "second"), calls);
     }
 
-    // --- listeners ---
 
     @Test
     void failingListenerStopsExecution() {
@@ -182,7 +222,6 @@ class ControllerTest {
         Controller controller = new Controller(newRepository(state));
         controller.addListener(new FailingListener());
         assertThrows(RepositoryException.class, () -> controller.runUninterrupted());
-        // it failed on the initial state, before any step ran
         assertTrue(state.getSystemOut().isEmpty());
     }
 
@@ -197,7 +236,6 @@ class ControllerTest {
 
     @Test
     void logFileHasOneEntryPerState() throws Exception {
-        // print(1); print(2): initial state + 3 steps
         run(new CompoundStatement(printNumber(1), printNumber(2)));
         assertEquals(4, countOccurrences(Files.readString(logFile()), "ExeStack:"));
     }
@@ -208,7 +246,6 @@ class ControllerTest {
         return count;
     }
 
-    // --- log file ---
 
     @Test
     void logFileEndsWithTheFinalState() throws Exception {
@@ -223,7 +260,6 @@ class ControllerTest {
         IStatement program = new CompoundStatement(printNumber(1),
                 new AssignmentStatement("x", new ValueExpression(new ToyIntegerValue(1))));
         assertThrows(StatementException.class, () -> run(program));
-        // initial state, S1, print(1) were logged before the failing step
         assertEquals(3, countOccurrences(Files.readString(logFile()), "ExeStack:"));
     }
 
@@ -236,7 +272,6 @@ class ControllerTest {
 
     @Test
     void unwritableLogFileThrowsRepositoryException() throws IOException {
-        // the log path is a folder, so it cannot be opened as a file
         Path folder = Files.createDirectory(dir.resolve("folder"));
         ProgramState state = ProgramState.of(printNumber(1));
         Repository repository = new Repository(state);
@@ -245,7 +280,6 @@ class ControllerTest {
         assertThrows(RepositoryException.class, () -> controller.runUninterrupted());
     }
 
-    // Adds its name to a list every time it is called.
     private static class NamedListener implements ProgramStateListener {
         private final String name;
         private final List<String> calls;
@@ -261,7 +295,6 @@ class ControllerTest {
         }
     }
 
-    // Always fails.
     private static class FailingListener implements ProgramStateListener {
         @Override
         public void onStateChanged(ProgramState s) throws InterpreterException {
@@ -269,7 +302,6 @@ class ControllerTest {
         }
     }
 
-    // Stores a text snapshot of every state it is given.
     private class TraceListener implements ProgramStateListener {
         @Override
         public void onStateChanged(ProgramState s) {

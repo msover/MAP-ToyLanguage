@@ -105,7 +105,6 @@ class RelationalExpressionTest {
 
     @Test
     void arithmeticExpressionsCanBeOperands() throws InterpreterException {
-        // (2 + 3) == 5
         IExpression sum = new ArithmeticExpression(num(2), ArithmeticOperator.ADD, num(3));
         assertEquals(TRUE, new RelationalExpression(sum, IS_EQUAL, num(5)).evaluate(symbolTable));
     }
@@ -128,7 +127,6 @@ class RelationalExpressionTest {
 
     @Test
     void comparingTwoBooleansThrows() {
-        // == is only defined on integers (rule E5)
         assertThrows(ExpressionException.class,
                 () -> new RelationalExpression(bool(true), IS_EQUAL, bool(true)).evaluate(symbolTable));
     }

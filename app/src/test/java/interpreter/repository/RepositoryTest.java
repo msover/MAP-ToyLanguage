@@ -35,7 +35,6 @@ class RepositoryTest {
         assertTrue(repository.getCurrentProgram().getExecutionStack().isEmpty());
     }
 
-    // --- log text ---
 
     @Test
     void logReturnsTheLogStringOfTheCurrentState() {

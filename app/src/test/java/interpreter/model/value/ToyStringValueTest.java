@@ -32,7 +32,6 @@ class ToyStringValueTest {
 
     @Test
     void valuesWithSameTextBuiltDifferentlyAreEqual() {
-        // two distinct String objects with the same content must still compare equal
         String built = new StringBuilder("ab").append("c").toString();
         assertEquals(new ToyStringValue("abc"), new ToyStringValue(built));
     }
@@ -65,7 +64,6 @@ class ToyStringValueTest {
 
     @Test
     void canBeUsedAsHashMapKey() {
-        // the FileTable looks files up with a new ToyStringValue each time
         Map<ToyStringValue, Integer> map = new HashMap<>();
         map.put(new ToyStringValue("test.in"), 1);
         assertTrue(map.containsKey(new ToyStringValue("test.in")));

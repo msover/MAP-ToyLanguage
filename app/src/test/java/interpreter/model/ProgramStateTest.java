@@ -76,7 +76,6 @@ class ProgramStateTest {
         assertTrue(text.contains("FileTable: {}"));
     }
 
-    // --- the static factory ---
 
     @Test
     void factoryPutsOnlyTheProgramOnTheStack() throws InterpreterException {
@@ -110,11 +109,9 @@ class ProgramStateTest {
         assertTrue(b.getFileTable().isEmpty());
     }
 
-    // --- the FileTable ---
 
     @Test
     void fileTableFindsAReaderByAnEqualFileName() throws InterpreterException {
-        // the statements evaluate the file name again each time, so the lookup key is a new object
         BufferedReader reader = new BufferedReader(new StringReader("15\n50\n"));
         state.getFileTable().put(new ToyStringValue("test.in"), reader);
         assertTrue(state.getFileTable().containsKey(new ToyStringValue("test.in")));
@@ -126,5 +123,72 @@ class ProgramStateTest {
         state.getFileTable().put(new ToyStringValue("test.in"), new BufferedReader(new StringReader("")));
         state.getFileTable().remove(new ToyStringValue("test.in"));
         assertTrue(state.getFileTable().isEmpty());
+    }
+
+
+    @Test
+    void logStringOfANewState() {
+        assertEquals("ExeStack:\nprint(1)\nSymTable:\nOut:\nFileTable:\n", state.toLogString());
+    }
+
+    @Test
+    void logStringOfAnEmptyState() throws InterpreterException {
+        stack.pop();
+        assertEquals("ExeStack:\nSymTable:\nOut:\nFileTable:\n", state.toLogString());
+    }
+
+    @Test
+    void logStringHasTheFourSectionsInOrder() {
+        String log = state.toLogString();
+        int a = log.indexOf("ExeStack:"), b = log.indexOf("SymTable:"),
+                c = log.indexOf("Out:"), d = log.indexOf("FileTable:");
+        assertTrue(0 <= a && a < b && b < c && c < d);
+    }
+
+    @Test
+    void logStringListsTheStackTopFirst() throws InterpreterException {
+        IStatement second = new PrintStatement(new ValueExpression(new ToyIntegerValue(2)));
+        IStatement third = new PrintStatement(new ValueExpression(new ToyIntegerValue(3)));
+        stack.push(second);
+        stack.push(third);
+        assertTrue(state.toLogString().startsWith("ExeStack:\nprint(3)\nprint(2)\nprint(1)\nSymTable:\n"));
+    }
+
+    @Test
+    void logStringShowsVariablesWithArrows() throws InterpreterException {
+        symbolTable.put("v", new ToyIntegerValue(5));
+        symbolTable.put("varf", new ToyStringValue("test.in"));
+        String log = state.toLogString();
+        assertTrue(log.contains("\nv --> 5\n"));
+        assertTrue(log.contains("\nvarf --> \"test.in\"\n"));
+    }
+
+    @Test
+    void logStringShowsOutputInPrintOrder() {
+        out.append(new ToyIntegerValue(15));
+        out.append(new ToyIntegerValue(50));
+        assertTrue(state.toLogString().contains("Out:\n15\n50\nFileTable:\n"));
+    }
+
+    @Test
+    void logStringShowsOpenFileNamesWithoutQuotes() throws InterpreterException {
+        fileTable.put(new ToyStringValue("test.in"), new BufferedReader(new StringReader("")));
+        assertTrue(state.toLogString().endsWith("FileTable:\ntest.in\n"));
+    }
+
+    @Test
+    void logStringPutsEachElementOnItsOwnLine() throws InterpreterException {
+        symbolTable.put("a", new ToyIntegerValue(1));
+        symbolTable.put("b", new ToyIntegerValue(2));
+        out.append(new ToyIntegerValue(7));
+        assertEquals(8, state.toLogString().split("\n").length);
+    }
+
+    @Test
+    void logStringDoesNotChangeTheState() throws InterpreterException {
+        symbolTable.put("v", new ToyIntegerValue(5));
+        state.toLogString();
+        assertEquals(1, stack.size());
+        assertEquals(1, symbolTable.size());
     }
 }

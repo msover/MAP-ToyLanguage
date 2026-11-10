@@ -28,14 +28,13 @@ class AssignmentStatementTest {
     private IList<IValue> out;
     private ProgramState state;
 
-    // Each test starts from an empty stack, an empty symbol table and an empty output.
     @BeforeEach
     void setUp() throws InterpreterException {
         state = ProgramState.of(new NothingBurgerStatement());
         stack = state.getExecutionStack();
         symbolTable = state.getSymbolTable();
         out = state.getSystemOut();
-        stack.pop(); // remove the placeholder program pushed by the constructor
+        stack.pop();
     }
 
     private static IExpression num(int n) {
@@ -66,7 +65,6 @@ class AssignmentStatementTest {
 
     @Test
     void assignsExpressionUsingOtherVariable() throws InterpreterException {
-        // b = a + 1 with a -> 17 gives b -> 18 (example Ex2)
         symbolTable.put("a", new ToyIntegerValue(17));
         symbolTable.put("b", new ToyIntegerValue(0));
         new AssignmentStatement("b", new ArithmeticExpression(var("a"), ArithmeticOperator.ADD, num(1))).execute(state);

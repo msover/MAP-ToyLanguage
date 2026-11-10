@@ -62,21 +62,18 @@ class ArithmeticExpressionTest {
 
     @Test
     void nestedExpressionFollowsTreeShape() throws InterpreterException {
-        // 2 + 3 * 5 = 17
         IExpression e = arith(num(2), ADD, arith(num(3), MUL, num(5)));
         assertEquals(new ToyIntegerValue(17), e.evaluate(symbolTable));
     }
 
     @Test
     void arithmeticExpressionsOnBothSidesWork() throws InterpreterException {
-        // (2 + 3) * (10 - 4) = 30
         IExpression e = arith(arith(num(2), ADD, num(3)), MUL, arith(num(10), SUB, num(4)));
         assertEquals(new ToyIntegerValue(30), e.evaluate(symbolTable));
     }
 
     @Test
     void variablesCanBeOperands() throws InterpreterException {
-        // a + 1 with a -> 17 gives 18 (example Ex2)
         symbolTable.put("a", new ToyIntegerValue(17));
         assertEquals(new ToyIntegerValue(18), arith(new VariableExpression("a"), ADD, num(1)).evaluate(symbolTable));
     }

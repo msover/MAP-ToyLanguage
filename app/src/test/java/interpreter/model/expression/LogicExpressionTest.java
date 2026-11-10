@@ -54,7 +54,6 @@ class LogicExpressionTest {
 
     @Test
     void nestedLogicExpressionsWork() throws InterpreterException {
-        // (true and false) or true = true
         IExpression e = new LogicExpression(new LogicExpression(bool(true), AND, bool(false)), OR, bool(true));
         assertEquals(new ToyBooleanValue(true), e.evaluate(symbolTable));
     }
@@ -80,7 +79,6 @@ class LogicExpressionTest {
 
     @Test
     void rightOperandIsCheckedEvenWhenLeftDecidesTheResult() {
-        // false and 5 must still fail: both operands are always evaluated (rule E4)
         assertThrows(ExpressionException.class,
                 () -> new LogicExpression(bool(false), AND, num(5)).evaluate(symbolTable));
         assertThrows(ExpressionException.class,

@@ -24,19 +24,17 @@ import static org.junit.jupiter.api.Assertions.*;
 class ReadFileStatementTest {
 
     @TempDir
-    Path dir; // a new empty folder for every test
+    Path dir;
 
     private ProgramState state;
 
-    // Each test starts with an empty state and an int variable x.
     @BeforeEach
     void setUp() throws InterpreterException {
         state = ProgramState.of(new NothingBurgerStatement());
-        state.getExecutionStack().pop(); // remove the placeholder program
+        state.getExecutionStack().pop();
         new ObjectDeclarationStatement("x", new ToyIntegerType()).execute(state);
     }
 
-    // Writes a file in the temp folder and returns its name as an expression.
     private IExpression fileWith(String name, String content) throws IOException {
         Path f = dir.resolve(name);
         Files.writeString(f, content);
@@ -72,7 +70,7 @@ class ReadFileStatementTest {
         read(file, "x");
         read(file, "x");
         assertEquals(new ToyIntegerValue(0), x());
-        read(file, "x"); // still 0 when reading past the end again
+        read(file, "x");
         assertEquals(new ToyIntegerValue(0), x());
     }
 
@@ -152,7 +150,7 @@ class ReadFileStatementTest {
 
     @Test
     void fileNotOpenThrows() throws Exception {
-        IExpression file = fileWith("numbers.in", "1\n"); // exists, but not opened
+        IExpression file = fileWith("numbers.in", "1\n");
         assertThrows(StatementException.class, () -> read(file, "x"));
     }
 

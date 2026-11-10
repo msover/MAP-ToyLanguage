@@ -22,11 +22,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class OpenReadFileStatementTest {
 
     @TempDir
-    Path dir; // a new empty folder for every test
+    Path dir;
 
     private ProgramState state;
-    private ToyStringValue fileName;   // "<dir>/numbers.in", which exists
-    private IExpression file;          // the same name as an expression
+    private ToyStringValue fileName;
+    private IExpression file;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -35,7 +35,7 @@ class OpenReadFileStatementTest {
         fileName = new ToyStringValue(f.toString());
         file = new ValueExpression(fileName);
         state = ProgramState.of(new NothingBurgerStatement());
-        state.getExecutionStack().pop(); // remove the placeholder program
+        state.getExecutionStack().pop();
     }
 
     @Test
