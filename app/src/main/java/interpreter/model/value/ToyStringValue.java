@@ -33,6 +33,6 @@ public class ToyStringValue implements IValue {
 
     @Override
     public String toString() {
-        return this.toyString;
+        return "\"" + this.toyString + "\"";
     }
 }
