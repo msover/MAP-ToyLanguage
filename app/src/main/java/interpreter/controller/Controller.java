@@ -29,6 +29,8 @@ public class Controller {
         while (!programState.getExecutionStack().isEmpty()) {
             programState = this.oneStep(programState);
             this.notifyListeners(programState);
+            this.collectGarbage(programState);
+            this.notifyListeners(programState);
         }
     }
 
@@ -46,5 +48,12 @@ public class Controller {
             throw new StatementException("Execution stack is empty");
         }
         return toExecute.execute(programState);
+    }
+
+    private void collectGarbage(ProgramState programState) {
+        var heap = programState.getHeap();
+        heap.setContent(GarbageCollector.safe(
+                GarbageCollector.getRootAddresses(
+                        programState.getSymbolTable().toMap().values()), heap.getContent()));
     }
 }

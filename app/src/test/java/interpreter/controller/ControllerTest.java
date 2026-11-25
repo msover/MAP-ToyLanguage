@@ -53,12 +53,18 @@ class ControllerTest {
     @Test
     void example1ProducesExpectedTrace() throws InterpreterException {
         runWithTrace(Examples.example1());
+        // the initial state, then every step twice: before and after the garbage collection
         String[][] expected = {
                 {"{int v; (v = 2; print(v))}", "{}", "{}"},
                 {"{int v | v = 2; print(v)}", "{}", "{}"},
+                {"{int v | v = 2; print(v)}", "{}", "{}"},
+                {"{v = 2; print(v)}", "{v -> 0}", "{}"},
                 {"{v = 2; print(v)}", "{v -> 0}", "{}"},
                 {"{v = 2 | print(v)}", "{v -> 0}", "{}"},
+                {"{v = 2 | print(v)}", "{v -> 0}", "{}"},
                 {"{print(v)}", "{v -> 2}", "{}"},
+                {"{print(v)}", "{v -> 2}", "{}"},
+                {"{}", "{v -> 2}", "{2}"},
                 {"{}", "{v -> 2}", "{2}"},
         };
         assertEquals(expected.length, trace.size());
@@ -233,6 +239,86 @@ class ControllerTest {
         assertTrue(lastEntry.contains("Heap:\n1 --> 20\n"));
     }
 
+    /** Ref int v; new(v, 20); Ref Ref int a; new(a, v); new(v, 30); print(rH(rH(a))) */
+    private static IStatement ex9() {
+        return sequence(
+                new ObjectDeclarationStatement("v", refInt()),
+                new NewStatement("v", number(20)),
+                new ObjectDeclarationStatement("a", new ToyReferenceType(refInt())),
+                new NewStatement("a", variable("v")),
+                new NewStatement("v", number(30)),
+                new PrintStatement(readHeap(readHeap(variable("a")))));
+    }
+
+    @Test
+    void ex9PrintsTwentyWithTheSafeGarbageCollector() throws InterpreterException {
+        ProgramState state = run(ex9());
+        assertEquals("{20}", state.getSystemOut().toString());
+    }
+
+    @Test
+    void ex9KeepsTheLocationReachableOnlyThroughTheHeap() throws InterpreterException {
+        ProgramState state = run(ex9());
+        assertEquals("{1 -> 20, 2 -> (1, int), 3 -> 30}", state.getHeap().toString());
+    }
+
+    @Test
+    void ex9LogShowsTheHeapAfterTheLastNew() throws Exception {
+        run(ex9());
+        assertTrue(Files.readString(logFile()).contains("Heap:\n1 --> 20\n2 --> (1, int)\n3 --> 30\n"));
+    }
+
+    /** Ref int v; new(v, 20); new(v, 30)  ->  location 1 becomes garbage */
+    private static IStatement overwrittenReference() {
+        return sequence(
+                new ObjectDeclarationStatement("v", refInt()),
+                new NewStatement("v", number(20)),
+                new NewStatement("v", number(30)));
+    }
+
+    @Test
+    void garbageCollectorRemovesAnUnreachableLocation() throws InterpreterException {
+        ProgramState state = run(overwrittenReference());
+        assertEquals(Map.of(2, new ToyIntegerValue(30)), state.getHeap().getContent());
+    }
+
+    @Test
+    void garbageCollectorDoesNotReuseTheFreedAddress() throws InterpreterException {
+        ProgramState state = run(sequence(
+                new ObjectDeclarationStatement("v", refInt()),
+                new NewStatement("v", number(20)),
+                new NewStatement("v", number(30)),
+                new NewStatement("v", number(40))));
+        assertEquals(Map.of(3, new ToyIntegerValue(40)), state.getHeap().getContent());
+    }
+
+    @Test
+    void logShowsTheHeapBeforeAndAfterTheCollection() throws Exception {
+        run(overwrittenReference());
+        String[] entries = Files.readString(logFile()).split("ExeStack:");
+        int before = -1;
+        for (int i = 0; i < entries.length; i++) {
+            if (entries[i].contains("Heap:\n1 --> 20\n2 --> 30\n")) {
+                before = i;
+                break;
+            }
+        }
+        assertTrue(before > 0, "the log must show both locations right after new(v, 30)");
+        assertTrue(entries[before + 1].contains("Heap:\n2 --> 30\n"));
+        assertFalse(entries[before + 1].contains("1 --> 20"), "the next entry is after the collection");
+    }
+
+    @Test
+    void garbageCollectorKeepsEverythingThatIsStillInUse() throws InterpreterException {
+        // Ex7: nothing becomes garbage
+        ProgramState state = run(sequence(
+                new ObjectDeclarationStatement("v", refInt()),
+                new NewStatement("v", number(20)),
+                new ObjectDeclarationStatement("a", new ToyReferenceType(refInt())),
+                new NewStatement("a", variable("v"))));
+        assertEquals(2, state.getHeap().size());
+    }
+
     @Test
     void readingANullReferenceStopsTheProgram() {
         // Ref int v; print(rH(v))
@@ -275,14 +361,15 @@ class ControllerTest {
         IStatement program = new CompoundStatement(printNumber(1),
                 new AssignmentStatement("x", new ValueExpression(new ToyIntegerValue(1))));
         assertThrows(StatementException.class, () -> runWithTrace(program));
-        assertEquals(3, trace.size());
-        assertEquals("{1}", trace.get(2)[2]);
+        assertEquals(5, trace.size());
+        assertEquals("{1}", trace.get(4)[2]);
     }
 
     @Test
-    void listenerIsCalledOncePerStepPlusInitialState() throws InterpreterException {
+    void listenerIsCalledTwicePerStepPlusInitialState() throws InterpreterException {
+        // 3 steps: the compound statement, print(1), print(2)  ->  1 + 2 * 3
         runWithTrace(new CompoundStatement(printNumber(1), printNumber(2)));
-        assertEquals(4, trace.size());
+        assertEquals(7, trace.size());
     }
 
     @Test
@@ -301,7 +388,7 @@ class ControllerTest {
         controller.addListener(new NamedListener("first", calls));
         controller.addListener(new NamedListener("second", calls));
         controller.runUninterrupted();
-        assertEquals(List.of("first", "second", "first", "second"), calls);
+        assertEquals(List.of("first", "second", "first", "second", "first", "second"), calls);
     }
 
 
@@ -324,9 +411,9 @@ class ControllerTest {
     }
 
     @Test
-    void logFileHasOneEntryPerState() throws Exception {
+    void logFileHasTheInitialStateAndTwoEntriesPerStep() throws Exception {
         run(new CompoundStatement(printNumber(1), printNumber(2)));
-        assertEquals(4, countOccurrences(Files.readString(logFile()), "ExeStack:"));
+        assertEquals(7, countOccurrences(Files.readString(logFile()), "ExeStack:"));
     }
 
     private static int countOccurrences(String text, String part) {
@@ -349,14 +436,14 @@ class ControllerTest {
         IStatement program = new CompoundStatement(printNumber(1),
                 new AssignmentStatement("x", new ValueExpression(new ToyIntegerValue(1))));
         assertThrows(StatementException.class, () -> run(program));
-        assertEquals(3, countOccurrences(Files.readString(logFile()), "ExeStack:"));
+        assertEquals(5, countOccurrences(Files.readString(logFile()), "ExeStack:"));
     }
 
     @Test
     void runningTwiceAppendsToTheLog() throws Exception {
         run(printNumber(1));
         run(printNumber(1));
-        assertEquals(4, countOccurrences(Files.readString(logFile()), "ExeStack:"));
+        assertEquals(6, countOccurrences(Files.readString(logFile()), "ExeStack:"));
     }
 
     @Test
