@@ -1,9 +1,11 @@
 package interpreter.model;
 
 import interpreter.exceptions.InterpreterException;
+import interpreter.model.adt.ToyHeap;
 import interpreter.model.adt.ToyList;
 import interpreter.model.adt.ToyMap;
 import interpreter.model.adt.ToyStack;
+import interpreter.model.adt.interfaces.IHeap;
 import interpreter.model.adt.interfaces.IList;
 import interpreter.model.adt.interfaces.IMap;
 import interpreter.model.adt.interfaces.IStack;
@@ -11,13 +13,17 @@ import interpreter.model.expression.ValueExpression;
 import interpreter.model.statement.IStatement;
 import interpreter.model.statement.PrintStatement;
 import interpreter.model.value.IValue;
+import interpreter.model.type.ToyIntegerType;
+import interpreter.model.type.ToyReferenceType;
 import interpreter.model.value.ToyIntegerValue;
+import interpreter.model.value.ToyReferenceValue;
 import interpreter.model.value.ToyStringValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
 import java.io.StringReader;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -27,6 +33,7 @@ class ProgramStateTest {
     private IMap<String, IValue> symbolTable;
     private IList<IValue> out;
     private IMap<ToyStringValue, BufferedReader> fileTable;
+    private IHeap heap;
     private IStatement program;
     private ProgramState state;
 
@@ -36,8 +43,9 @@ class ProgramStateTest {
         symbolTable = new ToyMap<>();
         out = new ToyList<>();
         fileTable = new ToyMap<>();
+        heap = new ToyHeap();
         program = new PrintStatement(new ValueExpression(new ToyIntegerValue(1)));
-        state = new ProgramState(stack, symbolTable, out, fileTable, program);
+        state = new ProgramState(stack, symbolTable, out, fileTable, heap, program);
     }
 
     @Test
@@ -47,10 +55,11 @@ class ProgramStateTest {
     }
 
     @Test
-    void newStateHasEmptySymbolTableOutputAndFileTable() {
+    void newStateHasEmptySymbolTableOutputFileTableAndHeap() {
         assertTrue(state.getSymbolTable().isEmpty());
         assertTrue(state.getSystemOut().isEmpty());
         assertTrue(state.getFileTable().isEmpty());
+        assertTrue(state.getHeap().isEmpty());
     }
 
     @Test
@@ -59,6 +68,7 @@ class ProgramStateTest {
         assertSame(symbolTable, state.getSymbolTable());
         assertSame(out, state.getSystemOut());
         assertSame(fileTable, state.getFileTable());
+        assertSame(heap, state.getHeap());
     }
 
     @Test
@@ -68,12 +78,19 @@ class ProgramStateTest {
     }
 
     @Test
-    void toStringShowsAllFourStructures() {
+    void toStringShowsAllFiveStructures() {
         String text = state.toString();
         assertTrue(text.contains("ExecutionStack: " + stack));
         assertTrue(text.contains("SymbolTable: {}"));
         assertTrue(text.contains("SystemOut: {}"));
         assertTrue(text.contains("FileTable: {}"));
+        assertTrue(text.contains("Heap: {}"));
+    }
+
+    @Test
+    void toStringShowsTheHeapContent() {
+        heap.allocate(new ToyIntegerValue(20));
+        assertTrue(state.toString().contains("Heap: {1 -> 20}"));
     }
 
 
@@ -90,6 +107,12 @@ class ProgramStateTest {
         assertTrue(s.getSymbolTable().isEmpty());
         assertTrue(s.getSystemOut().isEmpty());
         assertTrue(s.getFileTable().isEmpty());
+        assertTrue(s.getHeap().isEmpty());
+    }
+
+    @Test
+    void factoryHeapStartsAllocatingAtAddressOne() {
+        assertEquals(1, ProgramState.of(program).getHeap().allocate(new ToyIntegerValue(20)));
     }
 
     @Test
@@ -104,9 +127,11 @@ class ProgramStateTest {
         a.getSymbolTable().put("x", new ToyIntegerValue(1));
         a.getSystemOut().append(new ToyIntegerValue(1));
         a.getFileTable().put(new ToyStringValue("f"), new BufferedReader(new StringReader("")));
+        a.getHeap().allocate(new ToyIntegerValue(1));
         assertTrue(b.getSymbolTable().isEmpty());
         assertTrue(b.getSystemOut().isEmpty());
         assertTrue(b.getFileTable().isEmpty());
+        assertTrue(b.getHeap().isEmpty());
     }
 
 
@@ -128,21 +153,49 @@ class ProgramStateTest {
 
     @Test
     void logStringOfANewState() {
-        assertEquals("ExeStack:\nprint(1)\nSymTable:\nOut:\nFileTable:\n", state.toLogString());
+        assertEquals("ExeStack:\nprint(1)\nSymTable:\nOut:\nFileTable:\nHeap:\n", state.toLogString());
     }
 
     @Test
     void logStringOfAnEmptyState() throws InterpreterException {
         stack.pop();
-        assertEquals("ExeStack:\nSymTable:\nOut:\nFileTable:\n", state.toLogString());
+        assertEquals("ExeStack:\nSymTable:\nOut:\nFileTable:\nHeap:\n", state.toLogString());
     }
 
     @Test
-    void logStringHasTheFourSectionsInOrder() {
+    void logStringHasTheFiveSectionsInOrder() {
         String log = state.toLogString();
         int a = log.indexOf("ExeStack:"), b = log.indexOf("SymTable:"),
-                c = log.indexOf("Out:"), d = log.indexOf("FileTable:");
-        assertTrue(0 <= a && a < b && b < c && c < d);
+                c = log.indexOf("Out:"), d = log.indexOf("FileTable:"), e = log.indexOf("Heap:");
+        assertTrue(0 <= a && a < b && b < c && c < d && d < e);
+    }
+
+    @Test
+    void logStringShowsHeapEntriesWithArrows() {
+        heap.allocate(new ToyIntegerValue(20));
+        heap.allocate(new ToyReferenceValue(1, new ToyIntegerType()));
+        assertTrue(state.toLogString().endsWith("Heap:\n1 --> 20\n2 --> (1, int)\n"));
+    }
+
+    @Test
+    void logStringShowsHeapAddressesInIncreasingOrder() {
+        // a HashMap of capacity 16 iterates these keys as 17, 3, 100
+        heap.setContent(Map.of(100, new ToyIntegerValue(1), 3, new ToyIntegerValue(2), 17, new ToyIntegerValue(3)));
+        assertTrue(state.toLogString().endsWith("Heap:\n3 --> 2\n17 --> 3\n100 --> 1\n"));
+    }
+
+    @Test
+    void logStringShowsOnlyTheHeapEntriesThatAreLeft() {
+        heap.allocate(new ToyIntegerValue(20));
+        heap.allocate(new ToyIntegerValue(30));
+        heap.setContent(Map.of(2, new ToyIntegerValue(30)));
+        assertTrue(state.toLogString().endsWith("Heap:\n2 --> 30\n"));
+    }
+
+    @Test
+    void logStringShowsReferenceVariables() throws InterpreterException {
+        symbolTable.put("a", new ToyReferenceValue(2, new ToyReferenceType(new ToyIntegerType())));
+        assertTrue(state.toLogString().contains("SymTable:\na --> (2, Ref(int))\nOut:\n"));
     }
 
     @Test
@@ -173,7 +226,7 @@ class ProgramStateTest {
     @Test
     void logStringShowsOpenFileNamesWithoutQuotes() throws InterpreterException {
         fileTable.put(new ToyStringValue("test.in"), new BufferedReader(new StringReader("")));
-        assertTrue(state.toLogString().endsWith("FileTable:\ntest.in\n"));
+        assertTrue(state.toLogString().contains("FileTable:\ntest.in\nHeap:\n"));
     }
 
     @Test
@@ -181,14 +234,17 @@ class ProgramStateTest {
         symbolTable.put("a", new ToyIntegerValue(1));
         symbolTable.put("b", new ToyIntegerValue(2));
         out.append(new ToyIntegerValue(7));
-        assertEquals(8, state.toLogString().split("\n").length);
+        heap.allocate(new ToyIntegerValue(20));
+        assertEquals(10, state.toLogString().split("\n").length);
     }
 
     @Test
     void logStringDoesNotChangeTheState() throws InterpreterException {
         symbolTable.put("v", new ToyIntegerValue(5));
+        heap.allocate(new ToyIntegerValue(20));
         state.toLogString();
         assertEquals(1, stack.size());
         assertEquals(1, symbolTable.size());
+        assertEquals(1, heap.size());
     }
 }

@@ -11,10 +11,12 @@ import interpreter.model.expression.ValueExpression;
 import interpreter.model.expression.VariableExpression;
 import interpreter.model.type.ToyBooleanType;
 import interpreter.model.type.ToyIntegerType;
+import interpreter.model.type.ToyReferenceType;
 import interpreter.model.type.ToyStringType;
 import interpreter.model.value.IValue;
 import interpreter.model.value.ToyBooleanValue;
 import interpreter.model.value.ToyIntegerValue;
+import interpreter.model.value.ToyReferenceValue;
 import interpreter.model.value.ToyStringValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,6 +67,25 @@ class ObjectDeclarationStatementTest {
     void stringVariableStartsEmpty() throws InterpreterException {
         new ObjectDeclarationStatement("s", new ToyStringType()).execute(state);
         assertEquals(new ToyStringValue(""), symbolTable.lookup("s"));
+    }
+
+    @Test
+    void referenceVariableStartsAsNullReference() throws InterpreterException {
+        new ObjectDeclarationStatement("v", new ToyReferenceType(new ToyIntegerType())).execute(state);
+        assertEquals(new ToyReferenceValue(0, new ToyIntegerType()), symbolTable.lookup("v"));
+    }
+
+    @Test
+    void nestedReferenceVariableStartsAsNullReferenceToReference() throws InterpreterException {
+        new ObjectDeclarationStatement("a", new ToyReferenceType(new ToyReferenceType(new ToyIntegerType())))
+                .execute(state);
+        assertEquals(new ToyReferenceValue(0, new ToyReferenceType(new ToyIntegerType())), symbolTable.lookup("a"));
+    }
+
+    @Test
+    void referenceDeclarationToString() {
+        assertEquals("Ref(int) v",
+                new ObjectDeclarationStatement("v", new ToyReferenceType(new ToyIntegerType())).toString());
     }
 
     @Test

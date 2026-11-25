@@ -226,12 +226,12 @@ class ControllerTest {
     }
 
     @Test
-    void logFileContainsTheFourSectionsInOrder() throws Exception {
+    void logFileContainsTheFiveSectionsInOrder() throws Exception {
         run(Examples.example1());
         String log = Files.readString(logFile());
         int a = log.indexOf("ExeStack:"), b = log.indexOf("SymTable:"),
-                c = log.indexOf("Out:"), d = log.indexOf("FileTable:");
-        assertTrue(0 <= a && a < b && b < c && c < d);
+                c = log.indexOf("Out:"), d = log.indexOf("FileTable:"), e = log.indexOf("Heap:");
+        assertTrue(0 <= a && a < b && b < c && c < d && d < e);
     }
 
     @Test
@@ -252,7 +252,7 @@ class ControllerTest {
         run(Examples.example1());
         String log = Files.readString(logFile());
         String lastEntry = log.substring(log.lastIndexOf("ExeStack:"));
-        assertEquals("ExeStack:\nSymTable:\nv --> 2\nOut:\n2\nFileTable:\n", lastEntry.strip() + "\n");
+        assertEquals("ExeStack:\nSymTable:\nv --> 2\nOut:\n2\nFileTable:\nHeap:\n", lastEntry.strip() + "\n");
     }
 
     @Test

@@ -1,8 +1,10 @@
 package interpreter.model;
 
+import interpreter.model.adt.ToyHeap;
 import interpreter.model.adt.ToyList;
 import interpreter.model.adt.ToyMap;
 import interpreter.model.adt.ToyStack;
+import interpreter.model.adt.interfaces.IHeap;
 import interpreter.model.adt.interfaces.IList;
 import interpreter.model.adt.interfaces.IMap;
 import interpreter.model.adt.interfaces.IStack;
@@ -11,6 +13,7 @@ import interpreter.model.value.IValue;
 import interpreter.model.value.ToyStringValue;
 
 import java.io.BufferedReader;
+import java.util.TreeMap;
 
 public class ProgramState {
     private final IStack<IStatement> executionStack;
@@ -18,23 +21,25 @@ public class ProgramState {
     private final IList<IValue> systemOut;
     private final IMap<ToyStringValue, BufferedReader> fileTable;
     private final IStatement originalProgram;
-
+    private final IHeap heap;
 
     public ProgramState(IStack<IStatement> executionStack,
                         IMap<String, IValue> symbolTable,
                         IList<IValue> systemOut,
                         IMap<ToyStringValue, BufferedReader> fileTable,
+                        IHeap heap,
                         IStatement program) {
         this.executionStack = executionStack;
         this.symbolTable = symbolTable;
         this.systemOut = systemOut;
         this.fileTable = fileTable;
         this.originalProgram = program;
+        this.heap = heap;
         this.executionStack.push(program);
     }
 
     public static ProgramState of(IStatement program) {
-        return new ProgramState(new ToyStack<>(), new ToyMap<>(), new ToyList<>(), new ToyMap<>(), program);
+        return new ProgramState(new ToyStack<>(), new ToyMap<>(), new ToyList<>(), new ToyMap<>(), new ToyHeap(), program);
     }
 
     public IStack<IStatement> getExecutionStack() {
@@ -57,12 +62,17 @@ public class ProgramState {
         return this.fileTable;
     }
 
+    public IHeap getHeap() {
+        return this.heap;
+    }
+
     @Override
     public String toString() {
         return "ExecutionStack: " + this.executionStack.toString() + "\n" +
                 "SymbolTable: " + this.symbolTable.toString() + "\n" +
                 "SystemOut: " + this.systemOut.toString() + "\n" +
-                "FileTable: " + this.fileTable.toString();
+                "FileTable: " + this.fileTable.toString() + "\n" +
+                "Heap: " + this.heap.toString();
     }
 
     public String toLogString() {
@@ -80,6 +90,10 @@ public class ProgramState {
 
         sb.append("FileTable:\n");
         this.fileTable.toMap().keySet().forEach(fileName -> sb.append(fileName.getValue()).append('\n'));
+
+        sb.append("Heap:\n");
+        new TreeMap<Integer, IValue>(this.heap.getContent()).forEach((address, value) ->
+                sb.append(address).append(" --> ").append(value).append('\n'));
 
         return sb.toString();
     }
