@@ -108,7 +108,7 @@ class ReadFileStatementTest {
     void fileNameCanComeFromAVariable() throws Exception {
         IExpression file = openFileWith("9\n");
         new ObjectDeclarationStatement("varf", new ToyStringType()).execute(state);
-        state.getSymbolTable().update("varf", ((ValueExpression) file).evaluate(state.getSymbolTable()));
+        state.getSymbolTable().update("varf", ((ValueExpression) file).evaluate(state.getSymbolTable(), state.getHeap()));
         read(new VariableExpression("varf"), "x");
         assertEquals(new ToyIntegerValue(9), x());
     }

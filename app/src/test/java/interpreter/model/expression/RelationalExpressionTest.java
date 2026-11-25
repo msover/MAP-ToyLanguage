@@ -2,7 +2,9 @@ package interpreter.model.expression;
 
 import interpreter.exceptions.ExpressionException;
 import interpreter.exceptions.InterpreterException;
+import interpreter.model.adt.ToyHeap;
 import interpreter.model.adt.ToyMap;
+import interpreter.model.adt.interfaces.IHeap;
 import interpreter.model.adt.interfaces.IMap;
 import interpreter.model.expression.enums.ArithmeticOperator;
 import interpreter.model.expression.enums.RelationalOperator;
@@ -22,10 +24,12 @@ class RelationalExpressionTest {
     private static final IValue FALSE = new ToyBooleanValue(false);
 
     private IMap<String, IValue> symbolTable;
+    private IHeap heap;
 
     @BeforeEach
     void setUp() {
         symbolTable = new ToyMap<>();
+        heap = new ToyHeap();
     }
 
     private static IExpression num(int n) {
@@ -41,7 +45,7 @@ class RelationalExpressionTest {
     }
 
     private IValue eval(int left, RelationalOperator op, int right) throws InterpreterException {
-        return new RelationalExpression(num(left), op, num(right)).evaluate(symbolTable);
+        return new RelationalExpression(num(left), op, num(right)).evaluate(symbolTable, heap);
     }
 
     @Test
@@ -100,41 +104,41 @@ class RelationalExpressionTest {
         symbolTable.put("a", new ToyIntegerValue(5));
         symbolTable.put("b", new ToyIntegerValue(7));
         IExpression e = new RelationalExpression(new VariableExpression("a"), LESS_STRICT, new VariableExpression("b"));
-        assertEquals(TRUE, e.evaluate(symbolTable));
+        assertEquals(TRUE, e.evaluate(symbolTable, heap));
     }
 
     @Test
     void arithmeticExpressionsCanBeOperands() throws InterpreterException {
         IExpression sum = new ArithmeticExpression(num(2), ArithmeticOperator.ADD, num(3));
-        assertEquals(TRUE, new RelationalExpression(sum, IS_EQUAL, num(5)).evaluate(symbolTable));
+        assertEquals(TRUE, new RelationalExpression(sum, IS_EQUAL, num(5)).evaluate(symbolTable, heap));
     }
 
     @Test
     void nonIntegerLeftOperandThrows() {
         assertThrows(ExpressionException.class,
-                () -> new RelationalExpression(bool(true), LESS_STRICT, num(1)).evaluate(symbolTable));
+                () -> new RelationalExpression(bool(true), LESS_STRICT, num(1)).evaluate(symbolTable, heap));
         assertThrows(ExpressionException.class,
-                () -> new RelationalExpression(str("1"), IS_EQUAL, num(1)).evaluate(symbolTable));
+                () -> new RelationalExpression(str("1"), IS_EQUAL, num(1)).evaluate(symbolTable, heap));
     }
 
     @Test
     void nonIntegerRightOperandThrows() {
         assertThrows(ExpressionException.class,
-                () -> new RelationalExpression(num(1), GREATER_EQUAL, bool(false)).evaluate(symbolTable));
+                () -> new RelationalExpression(num(1), GREATER_EQUAL, bool(false)).evaluate(symbolTable, heap));
         assertThrows(ExpressionException.class,
-                () -> new RelationalExpression(num(1), NOT_EQUAL, str("1")).evaluate(symbolTable));
+                () -> new RelationalExpression(num(1), NOT_EQUAL, str("1")).evaluate(symbolTable, heap));
     }
 
     @Test
     void comparingTwoBooleansThrows() {
         assertThrows(ExpressionException.class,
-                () -> new RelationalExpression(bool(true), IS_EQUAL, bool(true)).evaluate(symbolTable));
+                () -> new RelationalExpression(bool(true), IS_EQUAL, bool(true)).evaluate(symbolTable, heap));
     }
 
     @Test
     void undeclaredVariableOperandThrows() {
         assertThrows(InterpreterException.class,
-                () -> new RelationalExpression(new VariableExpression("x"), LESS_STRICT, num(1)).evaluate(symbolTable));
+                () -> new RelationalExpression(new VariableExpression("x"), LESS_STRICT, num(1)).evaluate(symbolTable, heap));
     }
 
     @Test

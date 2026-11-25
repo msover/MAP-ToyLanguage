@@ -2,7 +2,9 @@ package interpreter.model.expression;
 
 import interpreter.exceptions.InterpreterException;
 import interpreter.exceptions.ExpressionException;
+import interpreter.model.adt.ToyHeap;
 import interpreter.model.adt.ToyMap;
+import interpreter.model.adt.interfaces.IHeap;
 import interpreter.model.adt.interfaces.IMap;
 import interpreter.model.expression.enums.ArithmeticOperator;
 import interpreter.model.expression.enums.LogicOperator;
@@ -18,10 +20,12 @@ import static org.junit.jupiter.api.Assertions.*;
 class LogicExpressionTest {
 
     private IMap<String, IValue> symbolTable;
+    private IHeap heap;
 
     @BeforeEach
     void setUp() {
         symbolTable = new ToyMap<>();
+        heap = new ToyHeap();
     }
 
     private static IExpression bool(boolean b) {
@@ -33,7 +37,7 @@ class LogicExpressionTest {
     }
 
     private IValue eval(boolean left, LogicOperator op, boolean right) throws InterpreterException {
-        return new LogicExpression(bool(left), op, bool(right)).evaluate(symbolTable);
+        return new LogicExpression(bool(left), op, bool(right)).evaluate(symbolTable, heap);
     }
 
     @Test
@@ -55,41 +59,41 @@ class LogicExpressionTest {
     @Test
     void nestedLogicExpressionsWork() throws InterpreterException {
         IExpression e = new LogicExpression(new LogicExpression(bool(true), AND, bool(false)), OR, bool(true));
-        assertEquals(new ToyBooleanValue(true), e.evaluate(symbolTable));
+        assertEquals(new ToyBooleanValue(true), e.evaluate(symbolTable, heap));
     }
 
     @Test
     void variablesCanBeOperands() throws InterpreterException {
         symbolTable.put("a", new ToyBooleanValue(true));
         IExpression e = new LogicExpression(new VariableExpression("a"), AND, bool(true));
-        assertEquals(new ToyBooleanValue(true), e.evaluate(symbolTable));
+        assertEquals(new ToyBooleanValue(true), e.evaluate(symbolTable, heap));
     }
 
     @Test
     void nonBooleanLeftOperandThrows() {
         assertThrows(ExpressionException.class,
-                () -> new LogicExpression(num(1), AND, bool(true)).evaluate(symbolTable));
+                () -> new LogicExpression(num(1), AND, bool(true)).evaluate(symbolTable, heap));
     }
 
     @Test
     void nonBooleanRightOperandThrows() {
         assertThrows(ExpressionException.class,
-                () -> new LogicExpression(bool(true), OR, num(1)).evaluate(symbolTable));
+                () -> new LogicExpression(bool(true), OR, num(1)).evaluate(symbolTable, heap));
     }
 
     @Test
     void rightOperandIsCheckedEvenWhenLeftDecidesTheResult() {
         assertThrows(ExpressionException.class,
-                () -> new LogicExpression(bool(false), AND, num(5)).evaluate(symbolTable));
+                () -> new LogicExpression(bool(false), AND, num(5)).evaluate(symbolTable, heap));
         assertThrows(ExpressionException.class,
-                () -> new LogicExpression(bool(true), OR, num(5)).evaluate(symbolTable));
+                () -> new LogicExpression(bool(true), OR, num(5)).evaluate(symbolTable, heap));
     }
 
     @Test
     void arithmeticOperandThrows() {
         IExpression sum = new ArithmeticExpression(num(1), ArithmeticOperator.ADD, num(2));
         assertThrows(ExpressionException.class,
-                () -> new LogicExpression(sum, AND, bool(true)).evaluate(symbolTable));
+                () -> new LogicExpression(sum, AND, bool(true)).evaluate(symbolTable, heap));
     }
 
     @Test

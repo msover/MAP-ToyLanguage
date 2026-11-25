@@ -29,7 +29,7 @@ public class ReadFileStatement implements IStatement {
             throw new StatementException("Cannot read from file; " + this.variableName + " not declared");
         if (!symbolTable.lookup(this.variableName).getType().equals(new ToyIntegerType()))
             throw new StatementException("Cannot read from file; " + this.variableName + " not an integer");
-        if (!(this.expression.evaluate(symbolTable) instanceof ToyStringValue fileName))
+        if (!(this.expression.evaluate(symbolTable, programState.getHeap()) instanceof ToyStringValue fileName))
             throw new StatementException("Cannot read from file " + this.expression + " as it is not a string");
 
         var fileTable = programState.getFileTable();

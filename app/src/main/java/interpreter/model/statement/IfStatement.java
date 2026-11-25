@@ -25,7 +25,7 @@ public class IfStatement implements IStatement {
 
     @Override
     public ProgramState execute(ProgramState programState) throws InterpreterException {
-        if (!(this.expression.evaluate(programState.getSymbolTable()) instanceof ToyBooleanValue condition))
+        if (!(this.expression.evaluate(programState.getSymbolTable(), programState.getHeap()) instanceof ToyBooleanValue condition))
             throw new StatementException("Cannot evaluate non-boolean condition");
         if (condition.getValue()) {
             programState.getExecutionStack().push(this.thenBranch);

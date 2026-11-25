@@ -19,7 +19,7 @@ public class CloseReadFileStatement implements IStatement {
 
     @Override
     public ProgramState execute(ProgramState programState) throws InterpreterException {
-        if (!(this.expression.evaluate(programState.getSymbolTable()) instanceof ToyStringValue fileName))
+        if (!(this.expression.evaluate(programState.getSymbolTable(), programState.getHeap()) instanceof ToyStringValue fileName))
             throw new StatementException("Cannot close file with non-string filename: " + this.expression);
 
         if (!programState.getFileTable().containsKey(fileName))

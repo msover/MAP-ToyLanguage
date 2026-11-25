@@ -20,7 +20,7 @@ public class OpenReadFileStatement implements IStatement {
 
     @Override
     public ProgramState execute(ProgramState programState) throws InterpreterException {
-        if (!(this.expression.evaluate(programState.getSymbolTable()) instanceof ToyStringValue fileName))
+        if (!(this.expression.evaluate(programState.getSymbolTable(), programState.getHeap()) instanceof ToyStringValue fileName))
             throw new StatementException("OpenReadFile: " + this.expression + " is not a string");
 
         var fileTable = programState.getFileTable();

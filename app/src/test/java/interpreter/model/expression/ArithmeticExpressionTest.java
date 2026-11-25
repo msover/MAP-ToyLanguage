@@ -2,7 +2,9 @@ package interpreter.model.expression;
 
 import interpreter.exceptions.InterpreterException;
 import interpreter.exceptions.ExpressionException;
+import interpreter.model.adt.ToyHeap;
 import interpreter.model.adt.ToyMap;
+import interpreter.model.adt.interfaces.IHeap;
 import interpreter.model.adt.interfaces.IMap;
 import interpreter.model.expression.enums.ArithmeticOperator;
 import interpreter.model.value.IValue;
@@ -17,10 +19,12 @@ import static org.junit.jupiter.api.Assertions.*;
 class ArithmeticExpressionTest {
 
     private IMap<String, IValue> symbolTable;
+    private IHeap heap;
 
     @BeforeEach
     void setUp() {
         symbolTable = new ToyMap<>();
+        heap = new ToyHeap();
     }
 
     private static IExpression num(int n) {
@@ -37,68 +41,68 @@ class ArithmeticExpressionTest {
 
     @Test
     void additionWorks() throws InterpreterException {
-        assertEquals(new ToyIntegerValue(5), arith(num(2), ADD, num(3)).evaluate(symbolTable));
+        assertEquals(new ToyIntegerValue(5), arith(num(2), ADD, num(3)).evaluate(symbolTable, heap));
     }
 
     @Test
     void subtractionWorks() throws InterpreterException {
-        assertEquals(new ToyIntegerValue(-1), arith(num(2), SUB, num(3)).evaluate(symbolTable));
+        assertEquals(new ToyIntegerValue(-1), arith(num(2), SUB, num(3)).evaluate(symbolTable, heap));
     }
 
     @Test
     void multiplicationWorks() throws InterpreterException {
-        assertEquals(new ToyIntegerValue(6), arith(num(2), MUL, num(3)).evaluate(symbolTable));
+        assertEquals(new ToyIntegerValue(6), arith(num(2), MUL, num(3)).evaluate(symbolTable, heap));
     }
 
     @Test
     void divisionIsIntegerDivision() throws InterpreterException {
-        assertEquals(new ToyIntegerValue(3), arith(num(7), DIV, num(2)).evaluate(symbolTable));
+        assertEquals(new ToyIntegerValue(3), arith(num(7), DIV, num(2)).evaluate(symbolTable, heap));
     }
 
     @Test
     void divisionByZeroThrows() {
-        assertThrows(ExpressionException.class, () -> arith(num(7), DIV, num(0)).evaluate(symbolTable));
+        assertThrows(ExpressionException.class, () -> arith(num(7), DIV, num(0)).evaluate(symbolTable, heap));
     }
 
     @Test
     void nestedExpressionFollowsTreeShape() throws InterpreterException {
         IExpression e = arith(num(2), ADD, arith(num(3), MUL, num(5)));
-        assertEquals(new ToyIntegerValue(17), e.evaluate(symbolTable));
+        assertEquals(new ToyIntegerValue(17), e.evaluate(symbolTable, heap));
     }
 
     @Test
     void arithmeticExpressionsOnBothSidesWork() throws InterpreterException {
         IExpression e = arith(arith(num(2), ADD, num(3)), MUL, arith(num(10), SUB, num(4)));
-        assertEquals(new ToyIntegerValue(30), e.evaluate(symbolTable));
+        assertEquals(new ToyIntegerValue(30), e.evaluate(symbolTable, heap));
     }
 
     @Test
     void variablesCanBeOperands() throws InterpreterException {
         symbolTable.put("a", new ToyIntegerValue(17));
-        assertEquals(new ToyIntegerValue(18), arith(new VariableExpression("a"), ADD, num(1)).evaluate(symbolTable));
+        assertEquals(new ToyIntegerValue(18), arith(new VariableExpression("a"), ADD, num(1)).evaluate(symbolTable, heap));
     }
 
     @Test
     void nonIntegerLeftOperandThrows() {
-        assertThrows(ExpressionException.class, () -> arith(bool(true), ADD, num(1)).evaluate(symbolTable));
+        assertThrows(ExpressionException.class, () -> arith(bool(true), ADD, num(1)).evaluate(symbolTable, heap));
     }
 
     @Test
     void nonIntegerRightOperandThrows() {
-        assertThrows(ExpressionException.class, () -> arith(num(1), ADD, bool(true)).evaluate(symbolTable));
+        assertThrows(ExpressionException.class, () -> arith(num(1), ADD, bool(true)).evaluate(symbolTable, heap));
     }
 
     @Test
     void booleanVariableAsOperandThrows() throws InterpreterException {
         symbolTable.put("b", new ToyBooleanValue(false));
         assertThrows(ExpressionException.class,
-                () -> arith(new VariableExpression("b"), MUL, num(2)).evaluate(symbolTable));
+                () -> arith(new VariableExpression("b"), MUL, num(2)).evaluate(symbolTable, heap));
     }
 
     @Test
     void undefinedVariableAsOperandThrows() {
         assertThrows(ExpressionException.class,
-                () -> arith(new VariableExpression("x"), ADD, num(1)).evaluate(symbolTable));
+                () -> arith(new VariableExpression("x"), ADD, num(1)).evaluate(symbolTable, heap));
     }
 
     @Test

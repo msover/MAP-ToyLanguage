@@ -1,7 +1,8 @@
 package interpreter.model.expression;
 
-import interpreter.exceptions.InterpreterException;
 import interpreter.exceptions.ExpressionException;
+import interpreter.exceptions.InterpreterException;
+import interpreter.model.adt.interfaces.IHeap;
 import interpreter.model.adt.interfaces.IMap;
 import interpreter.model.expression.enums.LogicOperator;
 import interpreter.model.value.IValue;
@@ -17,12 +18,12 @@ public class LogicExpression implements IExpression {
         this.operator = operator;
         this.rightExpression = rightExpression;
     }
-    
+
     @Override
-    public IValue evaluate(IMap<String, IValue> symbolTable) throws InterpreterException {
-        if (!(this.leftExpression.evaluate(symbolTable) instanceof ToyBooleanValue leftOperand))
+    public IValue evaluate(IMap<String, IValue> symbolTable, IHeap heap) throws InterpreterException {
+        if (!(this.leftExpression.evaluate(symbolTable, heap) instanceof ToyBooleanValue leftOperand))
             throw new ExpressionException("Left operand of logic expression not a boolean");
-        if (!(this.rightExpression.evaluate(symbolTable) instanceof ToyBooleanValue rightOperand))
+        if (!(this.rightExpression.evaluate(symbolTable, heap) instanceof ToyBooleanValue rightOperand))
             throw new ExpressionException("Right operand of logic expression not a boolean");
 
         return switch (operator) {

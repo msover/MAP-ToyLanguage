@@ -2,7 +2,9 @@ package interpreter.model.expression;
 
 import interpreter.exceptions.InterpreterException;
 import interpreter.exceptions.ExpressionException;
+import interpreter.model.adt.ToyHeap;
 import interpreter.model.adt.ToyMap;
+import interpreter.model.adt.interfaces.IHeap;
 import interpreter.model.adt.interfaces.IMap;
 import interpreter.model.value.IValue;
 import interpreter.model.value.ToyBooleanValue;
@@ -15,35 +17,37 @@ import static org.junit.jupiter.api.Assertions.*;
 class VariableExpressionTest {
 
     private IMap<String, IValue> symbolTable;
+    private IHeap heap;
 
     @BeforeEach
     void setUp() {
         symbolTable = new ToyMap<>();
+        heap = new ToyHeap();
     }
 
     @Test
     void evaluateReturnsValueOfDefinedVariable() throws InterpreterException {
         symbolTable.put("a", new ToyIntegerValue(2));
-        assertEquals(new ToyIntegerValue(2), new VariableExpression("a").evaluate(symbolTable));
+        assertEquals(new ToyIntegerValue(2), new VariableExpression("a").evaluate(symbolTable, heap));
     }
 
     @Test
     void evaluateReturnsCurrentValueAfterUpdate() throws InterpreterException {
         symbolTable.put("a", new ToyIntegerValue(2));
         symbolTable.update("a", new ToyIntegerValue(9));
-        assertEquals(new ToyIntegerValue(9), new VariableExpression("a").evaluate(symbolTable));
+        assertEquals(new ToyIntegerValue(9), new VariableExpression("a").evaluate(symbolTable, heap));
     }
 
     @Test
     void evaluatePicksTheRightVariable() throws InterpreterException {
         symbolTable.put("a", new ToyIntegerValue(2));
         symbolTable.put("b", new ToyBooleanValue(true));
-        assertEquals(new ToyBooleanValue(true), new VariableExpression("b").evaluate(symbolTable));
+        assertEquals(new ToyBooleanValue(true), new VariableExpression("b").evaluate(symbolTable, heap));
     }
 
     @Test
     void undefinedVariableThrows() {
-        assertThrows(ExpressionException.class, () -> new VariableExpression("x").evaluate(symbolTable));
+        assertThrows(ExpressionException.class, () -> new VariableExpression("x").evaluate(symbolTable, heap));
     }
 
     @Test

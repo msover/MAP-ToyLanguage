@@ -22,7 +22,7 @@ public class AssignmentStatement implements IStatement {
         if (!programState.getSymbolTable().containsKey(this.objectName))
             throw new StatementException("Object " + this.objectName + " is not declared in this scope");
 
-        IValue expressionValue = this.expression.evaluate(programState.getSymbolTable());
+        IValue expressionValue = this.expression.evaluate(programState.getSymbolTable(), programState.getHeap());
         if (!expressionValue.getType().equals(programState.getSymbolTable().lookup(this.objectName).getType()))
             throw new StatementException(
                     "Type-mismatch error between left(" +

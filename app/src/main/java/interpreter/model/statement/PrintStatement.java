@@ -14,7 +14,7 @@ public class PrintStatement implements IStatement {
 
     @Override
     public ProgramState execute(ProgramState programState) throws InterpreterException {
-        programState.getSystemOut().append(this.expression.evaluate(programState.getSymbolTable()));
+        programState.getSystemOut().append(this.expression.evaluate(programState.getSymbolTable(), programState.getHeap()));
         return programState;
     }
 
