@@ -1,15 +1,27 @@
 package interpreter.controller;
 
+import interpreter.exceptions.ExpressionException;
 import interpreter.exceptions.InterpreterException;
 import interpreter.exceptions.RepositoryException;
 import interpreter.exceptions.StatementException;
 import interpreter.model.ProgramState;
+import interpreter.model.expression.ArithmeticExpression;
+import interpreter.model.expression.IExpression;
+import interpreter.model.expression.ReadHeapExpression;
 import interpreter.model.expression.ValueExpression;
+import interpreter.model.expression.VariableExpression;
+import interpreter.model.expression.enums.ArithmeticOperator;
 import interpreter.model.statement.AssignmentStatement;
 import interpreter.model.statement.CompoundStatement;
 import interpreter.model.statement.IStatement;
+import interpreter.model.statement.NewStatement;
+import interpreter.model.statement.ObjectDeclarationStatement;
 import interpreter.model.statement.PrintStatement;
+import interpreter.model.statement.WriteHeapStatement;
+import interpreter.model.type.ToyIntegerType;
+import interpreter.model.type.ToyReferenceType;
 import interpreter.model.value.ToyIntegerValue;
+import interpreter.model.value.ToyReferenceValue;
 import interpreter.repository.Repository;
 import interpreter.view.Examples;
 import interpreter.view.Listeners.LogFileListener;
@@ -22,6 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -151,6 +164,82 @@ class ControllerTest {
         ProgramState state = run(Examples.example5());
         assertEquals(1, state.getSystemOut().size());
         assertEquals(new ToyIntegerValue(5), state.getSystemOut().get(0));
+    }
+
+    private static IStatement sequence(IStatement... statements) {
+        IStatement result = statements[statements.length - 1];
+        for (int i = statements.length - 2; i >= 0; i--) result = new CompoundStatement(statements[i], result);
+        return result;
+    }
+
+    private static IExpression number(int n) {
+        return new ValueExpression(new ToyIntegerValue(n));
+    }
+
+    private static IExpression variable(String name) {
+        return new VariableExpression(name);
+    }
+
+    private static IExpression readHeap(IExpression e) {
+        return new ReadHeapExpression(e);
+    }
+
+    private static IExpression plus(IExpression left, IExpression right) {
+        return new ArithmeticExpression(left, ArithmeticOperator.ADD, right);
+    }
+
+    private static ToyReferenceType refInt() {
+        return new ToyReferenceType(new ToyIntegerType());
+    }
+
+    @Test
+    void heapProgramEx7PrintsTwentyAndTwentyFive() throws InterpreterException {
+        // Ref int v; new(v, 20); Ref Ref int a; new(a, v); print(rH(v)); print(rH(rH(a)) + 5)
+        ProgramState state = run(sequence(
+                new ObjectDeclarationStatement("v", refInt()),
+                new NewStatement("v", number(20)),
+                new ObjectDeclarationStatement("a", new ToyReferenceType(refInt())),
+                new NewStatement("a", variable("v")),
+                new PrintStatement(readHeap(variable("v"))),
+                new PrintStatement(plus(readHeap(readHeap(variable("a"))), number(5)))));
+        assertEquals("{20, 25}", state.getSystemOut().toString());
+        assertEquals("{1 -> 20, 2 -> (1, int)}", state.getHeap().toString());
+        assertEquals(new ToyReferenceValue(1, new ToyIntegerType()), state.getSymbolTable().lookup("v"));
+        assertEquals(new ToyReferenceValue(2, refInt()), state.getSymbolTable().lookup("a"));
+    }
+
+    @Test
+    void heapProgramEx8PrintsTwentyAndThirtyFive() throws InterpreterException {
+        // Ref int v; new(v, 20); print(rH(v)); wH(v, 30); print(rH(v) + 5)
+        ProgramState state = run(sequence(
+                new ObjectDeclarationStatement("v", refInt()),
+                new NewStatement("v", number(20)),
+                new PrintStatement(readHeap(variable("v"))),
+                new WriteHeapStatement("v", number(30)),
+                new PrintStatement(plus(readHeap(variable("v")), number(5)))));
+        assertEquals("{20, 35}", state.getSystemOut().toString());
+        assertEquals(Map.of(1, new ToyIntegerValue(30)), state.getHeap().getContent());
+        assertEquals(new ToyReferenceValue(1, new ToyIntegerType()), state.getSymbolTable().lookup("v"));
+    }
+
+    @Test
+    void heapProgramLogShowsTheHeap() throws Exception {
+        run(sequence(
+                new ObjectDeclarationStatement("v", refInt()),
+                new NewStatement("v", number(20))));
+        String log = Files.readString(logFile());
+        String lastEntry = log.substring(log.lastIndexOf("ExeStack:"));
+        assertTrue(lastEntry.contains("SymTable:\nv --> (1, int)\n"));
+        assertTrue(lastEntry.contains("Heap:\n1 --> 20\n"));
+    }
+
+    @Test
+    void readingANullReferenceStopsTheProgram() {
+        // Ref int v; print(rH(v))
+        IStatement program = sequence(
+                new ObjectDeclarationStatement("v", refInt()),
+                new PrintStatement(readHeap(variable("v"))));
+        assertThrows(ExpressionException.class, () -> run(program));
     }
 
     @Test
