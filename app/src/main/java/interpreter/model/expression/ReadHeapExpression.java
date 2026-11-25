@@ -17,11 +17,11 @@ public class ReadHeapExpression implements IExpression {
     @Override
     public IValue evaluate(IMap<String, IValue> symbolTable, IHeap heap) throws InterpreterException {
         if (!(this.expression.evaluate(symbolTable, heap) instanceof ToyReferenceValue reference)) {
-            throw new ExpressionException("rH: " + this.expression + " is not a reference");
+            throw new ExpressionException("readHeap: " + this.expression + " is not a reference");
         }
 
         if (!heap.isDefined(reference.getAddress())) {
-            throw new ExpressionException("rH: address " + reference.getAddress() + " is not in the heap");
+            throw new ExpressionException("readHeap: address " + reference.getAddress() + " is not in the heap");
         }
 
         return heap.get(reference.getAddress());
@@ -29,6 +29,6 @@ public class ReadHeapExpression implements IExpression {
 
     @Override
     public String toString() {
-        return "rH(" + this.expression + ")";
+        return "readHeap(" + this.expression + ")";
     }
 }

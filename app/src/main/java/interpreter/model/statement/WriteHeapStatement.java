@@ -24,18 +24,18 @@ public class WriteHeapStatement implements IStatement {
         IHeap heap = programState.getHeap();
 
         if (!symbolTable.containsKey(this.objectName))
-            throw new StatementException("wH: object " + this.objectName + " not declared");
+            throw new StatementException("writeHeap: object " + this.objectName + " not declared");
 
         if (!(symbolTable.lookup(this.objectName) instanceof ToyReferenceValue reference))
-            throw new StatementException("wH: object " + this.objectName + " not defined as a reference");
+            throw new StatementException("writeHeap: object " + this.objectName + " not defined as a reference");
 
         if (!heap.isDefined(reference.getAddress()))
-            throw new StatementException("wH: address " + reference.getAddress() + " is not in the heap");
+            throw new StatementException("writeHeap: address " + reference.getAddress() + " is not in the heap");
 
         IValue value = this.expression.evaluate(symbolTable, heap);
 
         if (!value.getType().equals(reference.getLocationType()))
-            throw new StatementException("wH: " + this.expression + " has type " + value.getType()
+            throw new StatementException("writeHeap: " + this.expression + " has type " + value.getType()
                     + ", expected " + reference.getLocationType());
 
         heap.update(reference.getAddress(), value);
@@ -44,6 +44,6 @@ public class WriteHeapStatement implements IStatement {
 
     @Override
     public String toString() {
-        return "wH(" + this.objectName + ", " + this.expression + ")";
+        return "writeHeap(" + this.objectName + ", " + this.expression + ")";
     }
 }

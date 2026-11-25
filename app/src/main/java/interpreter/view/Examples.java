@@ -1,6 +1,7 @@
 package interpreter.view;
 
 import interpreter.model.expression.ArithmeticExpression;
+import interpreter.model.expression.ReadHeapExpression;
 import interpreter.model.expression.RelationalExpression;
 import interpreter.model.expression.ValueExpression;
 import interpreter.model.expression.VariableExpression;
@@ -9,6 +10,7 @@ import interpreter.model.expression.enums.RelationalOperator;
 import interpreter.model.statement.*;
 import interpreter.model.type.ToyBooleanType;
 import interpreter.model.type.ToyIntegerType;
+import interpreter.model.type.ToyReferenceType;
 import interpreter.model.type.ToyStringType;
 import interpreter.model.value.ToyBooleanValue;
 import interpreter.model.value.ToyIntegerValue;
@@ -112,5 +114,102 @@ public final class Examples {
                                                         new VariableExpression("b")),
                                                 new PrintStatement(new VariableExpression("a")),
                                                 new PrintStatement(new VariableExpression("b")))))));
+    }
+
+    // Ex6: Ref int v; new(v, 20); Ref Ref int a; new(a, v); print(v); print(a)
+    public static IStatement example6() {
+        return new CompoundStatement(
+                new ObjectDeclarationStatement("v", new ToyReferenceType(new ToyIntegerType())),
+                new CompoundStatement(
+                        new NewStatement("v", new ValueExpression(new ToyIntegerValue(20))),
+                        new CompoundStatement(
+                                new ObjectDeclarationStatement("a",
+                                        new ToyReferenceType(new ToyReferenceType(new ToyIntegerType()))),
+                                new CompoundStatement(
+                                        new NewStatement("a", new VariableExpression("v")),
+                                        new CompoundStatement(
+                                                new PrintStatement(new VariableExpression("v")),
+                                                new PrintStatement(new VariableExpression("a")))))));
+    }
+
+    // Ex7: Ref int v; new(v, 20); Ref Ref int a; new(a, v); print(rH(v)); print(rH(rH(a)) + 5)
+    public static IStatement example7() {
+        return new CompoundStatement(
+                new ObjectDeclarationStatement("v", new ToyReferenceType(new ToyIntegerType())),
+                new CompoundStatement(
+                        new NewStatement("v", new ValueExpression(new ToyIntegerValue(20))),
+                        new CompoundStatement(
+                                new ObjectDeclarationStatement("a",
+                                        new ToyReferenceType(new ToyReferenceType(new ToyIntegerType()))),
+                                new CompoundStatement(
+                                        new NewStatement("a", new VariableExpression("v")),
+                                        new CompoundStatement(
+                                                new PrintStatement(
+                                                        new ReadHeapExpression(new VariableExpression("v"))),
+                                                new PrintStatement(
+                                                        new ArithmeticExpression(
+                                                                new ReadHeapExpression(
+                                                                        new ReadHeapExpression(
+                                                                                new VariableExpression("a"))),
+                                                                ArithmeticOperator.ADD,
+                                                                new ValueExpression(new ToyIntegerValue(5)))))))));
+    }
+
+    // Ex8: Ref int v; new(v, 20); print(rH(v)); wH(v, 30); print(rH(v) + 5)
+    public static IStatement example8() {
+        return new CompoundStatement(
+                new ObjectDeclarationStatement("v", new ToyReferenceType(new ToyIntegerType())),
+                new CompoundStatement(
+                        new NewStatement("v", new ValueExpression(new ToyIntegerValue(20))),
+                        new CompoundStatement(
+                                new PrintStatement(new ReadHeapExpression(new VariableExpression("v"))),
+                                new CompoundStatement(
+                                        new WriteHeapStatement("v", new ValueExpression(new ToyIntegerValue(30))),
+                                        new PrintStatement(
+                                                new ArithmeticExpression(
+                                                        new ReadHeapExpression(new VariableExpression("v")),
+                                                        ArithmeticOperator.ADD,
+                                                        new ValueExpression(new ToyIntegerValue(5))))))));
+    }
+
+    // Ex9: Ref int v; new(v, 20); Ref Ref int a; new(a, v); new(v, 30); print(rH(rH(a)))
+    public static IStatement example9() {
+        return new CompoundStatement(
+                new ObjectDeclarationStatement("v", new ToyReferenceType(new ToyIntegerType())),
+                new CompoundStatement(
+                        new NewStatement("v", new ValueExpression(new ToyIntegerValue(20))),
+                        new CompoundStatement(
+                                new ObjectDeclarationStatement("a",
+                                        new ToyReferenceType(new ToyReferenceType(new ToyIntegerType()))),
+                                new CompoundStatement(
+                                        new NewStatement("a", new VariableExpression("v")),
+                                        new CompoundStatement(
+                                                new NewStatement("v", new ValueExpression(new ToyIntegerValue(30))),
+                                                new PrintStatement(
+                                                        new ReadHeapExpression(
+                                                                new ReadHeapExpression(
+                                                                        new VariableExpression("a")))))))));
+    }
+
+    // Ex10: int v; v = 4; (while (v > 0) (print(v); v = v - 1)); print(v)
+    public static IStatement example10() {
+        return new CompoundStatement(
+                new ObjectDeclarationStatement("v", new ToyIntegerType()),
+                new CompoundStatement(
+                        new AssignmentStatement("v", new ValueExpression(new ToyIntegerValue(4))),
+                        new CompoundStatement(
+                                new WhileStatement(
+                                        new RelationalExpression(
+                                                new VariableExpression("v"),
+                                                RelationalOperator.GREATER_STRICT,
+                                                new ValueExpression(new ToyIntegerValue(0))),
+                                        new CompoundStatement(
+                                                new PrintStatement(new VariableExpression("v")),
+                                                new AssignmentStatement("v",
+                                                        new ArithmeticExpression(
+                                                                new VariableExpression("v"),
+                                                                ArithmeticOperator.SUB,
+                                                                new ValueExpression(new ToyIntegerValue(1)))))),
+                                new PrintStatement(new VariableExpression("v")))));
     }
 }
