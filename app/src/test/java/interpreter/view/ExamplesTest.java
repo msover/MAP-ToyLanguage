@@ -56,19 +56,19 @@ class ExamplesTest {
     @Test
     void example7HasTheExpectedShape() {
         assertEquals("Ref(int) v; (new(v, 20); (Ref(Ref(int)) a; (new(a, v); "
-                        + "(print(rH(v)); print((rH(rH(a)) + 5))))))",
+                        + "(print(readHeap(v)); print((readHeap(readHeap(a)) + 5))))))",
                 Examples.example7().toString());
     }
 
     @Test
     void example8HasTheExpectedShape() {
-        assertEquals("Ref(int) v; (new(v, 20); (print(rH(v)); (wH(v, 30); print((rH(v) + 5)))))",
+        assertEquals("Ref(int) v; (new(v, 20); (print(readHeap(v)); (writeHeap(v, 30); print((readHeap(v) + 5)))))",
                 Examples.example8().toString());
     }
 
     @Test
     void example9HasTheExpectedShape() {
-        assertEquals("Ref(int) v; (new(v, 20); (Ref(Ref(int)) a; (new(a, v); (new(v, 30); print(rH(rH(a)))))))",
+        assertEquals("Ref(int) v; (new(v, 20); (Ref(Ref(int)) a; (new(a, v); (new(v, 30); print(readHeap(readHeap(a)))))))",
                 Examples.example9().toString());
     }
 

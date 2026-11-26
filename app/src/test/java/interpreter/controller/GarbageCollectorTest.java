@@ -103,7 +103,7 @@ class GarbageCollectorTest {
                 GarbageCollector.getRootAddresses(symbolTable.toMap().values()), EX9_HEAP));
         var readTwice = new ReadHeapExpression(new ReadHeapExpression(new VariableExpression("a")));
         ExpressionException e = assertThrows(ExpressionException.class, () -> readTwice.evaluate(symbolTable, heap));
-        assertEquals("rH: address 1 is not in the heap", e.getMessage());
+        assertEquals("readHeap: address 1 is not in the heap", e.getMessage());
     }
 
     @Test

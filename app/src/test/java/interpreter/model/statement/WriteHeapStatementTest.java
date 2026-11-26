@@ -130,6 +130,6 @@ class WriteHeapStatementTest {
 
     @Test
     void toStringShowsVariableAndExpression() {
-        assertEquals("wH(v, 30)", new WriteHeapStatement("v", num(30)).toString());
+        assertEquals("writeHeap(v, 30)", new WriteHeapStatement("v", num(30)).toString());
     }
 }

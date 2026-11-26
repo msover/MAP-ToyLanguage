@@ -124,7 +124,7 @@ class ReadHeapExpressionTest {
         heap.setContent(Map.of(2,new ToyReferenceValue(1, new ToyIntegerType())));
         ExpressionException e = assertThrows(ExpressionException.class,
                 () -> rH(rH(var("a"))).evaluate(symbolTable, heap));
-        assertEquals("rH: address 1 is not in the heap", e.getMessage());
+        assertEquals("readHeap: address 1 is not in the heap", e.getMessage());
     }
 
     @Test
@@ -134,11 +134,11 @@ class ReadHeapExpressionTest {
 
     @Test
     void toStringWrapsTheExpression() {
-        assertEquals("rH(v)", rH(var("v")).toString());
+        assertEquals("readHeap(v)", rH(var("v")).toString());
     }
 
     @Test
     void toStringOfNestedRead() {
-        assertEquals("rH(rH(a))", rH(rH(var("a"))).toString());
+        assertEquals("readHeap(readHeap(a))", rH(rH(var("a"))).toString());
     }
 }
